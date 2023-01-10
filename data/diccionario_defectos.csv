@@ -1,0 +1,190 @@
+ORIGINAL;CORRECCION
+ROTURA VIDRIO EXTERNO;Rotura de cristal
+PUNTOS BLANCOS;Manchas en cristal
+MANCHA P17;Manchas en PU
+VIDRIO PEGADOS;Rotura de cristal
+DEGRADE CORRIDO O DIFUSO;Serigrafia errada
+PERÍMETRO VIDRIO PEQUEÑO/GRANDE/ DIFEREN;Perimetro errado
+CURVATURA FUERA DE ESPECIFICACIÓN;Curvatura FT
+FALLA EN LOGO;Logo errado
+FALTA VIN;VIN inadecuado
+MANCHA 399;Manchas en PU
+FÓRMULA ERRADA;Formula errada
+PC GRANDE O PEQUEÑO;Tamaño de PC errado
+MANCHA INTERNA PU;Manchas en PU
+MANCHA INTERNA;Manchas en PU
+PICADURAS EN PC;Picaduras en PC
+LEVANTAMIENTO DE CURVATURA;Curvatura FT
+MARCACIONES DEL HORNO TAMGLASS;Marcaciones en cristal
+DELAMINACIÓN;Delaminacion
+PC EXPUESTO;Borde paquete no uniforme
+MANCHA DE PASTA DE PLATA;Manchas en cristal
+FALTA DE CONTINUIDAD EN RED;Red inadecuada
+CRACK EN LA CAJA;Cracks en PC
+VETAS EN CRISTAL;Vetas en cristal
+MARCACIONES POR MOLDE;Marcaciones en cristal
+MANCHA HPF17;Manchas en PU
+ESPESOR FUERA DE TOLERANCIA;Espesor FT
+MANCHA EN AL;Manchas en AL
+CAMBIO DE FORMULA Y COMPOSICIÓN;Formula errada
+AUREOLAS;Aureolas
+ANTENA SIN PINTAR;Antena inadecuada
+PUNTOS DE PINTURA EN ZONA TRANSPARENTE;Transparencia en serigrafia
+LOGO ERRADO;Logo errado
+FALTA DE LOGO;Logo errado
+RESISTENCIA FUERA DE TOLERANCIA;Resistencia FT
+LOGO/ TRAZABILIDAD MAL POSICIONADO;Logo errado
+ROTURA EN EL HORNO TAMGLASS;Rotura de cristal
+BURBUJA BAJO PC;Burbuja PC
+MANCHA EN ACERO;Manchas en Acero
+PUNTOS BRILLANTES;Manchas en cristal
+CRACK EN EL BORDE;Cracks en PC
+MANCHA HPF1;Manchas en PU
+MIGRACIÓN NO HOMOGÉNEA DE PASTA DE PLATA;Migracion pasta de plata
+ANTENA ROTA;Antena inadecuada
+PERPENDICULARIDAD FUERA TOLERAN. EN PAQU;Perpendicularidad paquete FT
+REGISTRO ERRADO;Registro errado
+BURBUJAS EN BORDE DE PAQUETE;Burbujas en cristal
+MARCACIONES POR TELA;Marcaciones en cristal
+PUNTOS DE COLOR;Manchas en cristal
+MAL POSICIONAMIENTO DE TERMINALES;Terminales errados
+RASPÓN;Raspones
+OJOS;Ojos
+PUNTOS AZUL EN BANDA NEGRA;Mancha en banda negra
+TRANSPARENCIA EN BANDA NEGRA;Transparencia en serigrafia
+PINTURA CON DIENTE DE SIERRA;Diente sierra en serigrafia
+ROTURA;Rotura de cristal
+DEFECTOS EN PLÁSTICOS;
+PVB MANCHA BRILLANTE;Mancha en PVB
+RAYAS SOBRE CRISTAL;Rayas en cristal
+DEFECTOS DE MATERIA PRIMA;Contaminacion
+ROTURA POR MANIPULACIÓN;Rotura de cristal
+MANCHA DE AGUA;Mancha en cristal
+DISTORSIÓN;Distorsion
+RAYA;Rayas en cristal
+SOMBRA AMARILLA CÁMARA;Sombra en cristal
+TRANSPARENCIA EN GLASSJET NOVO;Transparencia en serigrafia
+CIRCUITO CORTADO;Circuito no funcional
+BORDE SERRUCHO;Diente sierra en serigrafia
+DEFECTOS DIMENSIONALES;
+DESPLAZAMIENTO RAINSENSOR;Circuito no funcional
+FALLAS DE VACÍO;Burbujas en cristal
+MALLA TNT INVERTIDA;Malla TNT inadecuada
+FISURA;Fisura en cristal
+PET RAYA;Marcaciones en AL
+MANCHA EN PVB TEJIDO;Mancha en PVB Tejido
+PERDIDA DE LINEA;Pieza perdida en linea
+DEFECTOS VISUALES;
+RAYA FINA;Rayas en cristal
+FALTA DE VACÍO;Burbujas en cristal
+CAMBIO DE COLOR DE LA PASTA PLATA;Cambio de color de pasta de plata
+POROSIDAD EN BANDA NEGRA;Porosidad en banda en negra
+DISTORSION PERIMETRAL;Distorsion perimetral
+TRANSPARENCIAS EN BN;Transparencia en serigrafia
+PIEL DE NARANJA;Piel de naranja
+MALLA TNT ROTA;Malla TNT inadecuada
+ESPESOR ERRADO;Espesor FT
+RAYA PROFUNDA;Rayas en cristal
+ROTURA EN RACK ACV;Rotura de cristal
+DEFECTOS DE SERIGRAFÍA;Serigrafia errada
+DEFECTOS DE ACERO;Acero no conforme
+AUREOLA EN AL;Aureolas
+DISTORSION;Distorsion
+MANCHA DE LAMINA;Mancha en cristal
+IMPUREZAS;Contaminacion
+TRANSPARENCIA POR TALCO;Transparencia en serigrafia
+PERIMETRO ERRADO;Perimetro errado
+RAYAS;Rayas en cristal
+CORTO CIRCUITO;Circuito no funcional
+ARRUGA EN EL BLEEDER;Borde paquete no uniforme
+MANCHAS / PUNTOS;Manchas en cristal
+RETRABAJOS;
+DEPRESIÓN EN AL;Marcaciones en AL
+FALLA EN CIRCUITOS;Circuito no funcional
+MARCACIONES EN CRISTAL;Marcaciones en cristal
+RAYAS EN AL;Rayas en AL
+PERDIDO EN LINEA;Pieza perdida en linea
+ONDULACIONES EN AL;Marcaciones en AL
+DEFECTO EN LA PIEZA POR ARCHIVO ERRADO;Archivo errado
+PET DISTORSIÓN;Distorsion en AL
+DEFECTOS DE OPERACIÓN;
+DELAMINACIÓN POR AL;Delaminacion AL
+FALLA DE PVB;
+DEFECTOS DE PROCESO;
+MARCA DE MOLDE;Marcaciones en cristal
+PVB CONTRACCIÓN;Warping PVB
+CONTRACURVA;Contracurvas en cristal
+DEFECTOS OPTICOS;Distorsion
+FALLA EN CONECTORES;Terminales errados
+DIENTE SIERRA;Diente sierra en serigrafia
+TRASLAPE;Banda negra FT
+DEFECTOS DE BORDE;Borde paquete no uniforme
+PVB RASPÓN;Mancha en PVB
+ROTURA VIDRIO EXT O PQT;Rotura de cristal
+QUIÑES EN BORDE DE VIDRIO;Quiñes
+RED SOMBREADA;Red sombreada
+ROTURA ACV;Rotura de cristal
+MARCACIONES EN PC;Marcaciones en PC
+CONTAMINACIÓN INTERNA;Contaminacion
+RESISTENCIA CÁMARA;Resistencia FT
+FALLA EN BORDES;Borde paquete no uniforme
+FALTA DE CRISTAL;Formula errada
+QUIÑES EN SUPERFICIE;Quiñes
+DEFECTOS DE MANCHAS;Manchas en PU
+KRACKS EN AL;Cracks en AL
+FALLA EN EL TEMPLADO TERMICO;Templado termico inadecuado
+CONTAMINACIÓN POR PELUSA;Contaminacion
+PUNTOS LUMOCOLOR;Manchas en cristal
+DEFECTO DE MASA (PUNTOS BLANCOS);Contaminacion
+MANCHA EN RED;Red sombreada
+MAL CURADO RUCO;Pintura RUCO errada
+BURBUJAS EN EMPOTRADO;Burbujas en empotrado
+PINTURA CON DIENTE DE  SIERRA;Diente sierra en serigrafia
+MALLA F.T;Malla TNT inadecuada
+MATERIAL ERRONEO;Formula errada
+OXIDACION EN RED;Oxidacion en red
+QUIÑE EN EL BORDE;Quiñes
+ROTURA EN LÍNEA;Rotura de cristal
+DEFECTOS DE DELAMINACIÓN;Delaminacion
+DESPLAZAMIENTO DE PIEZA;Dezplazamiento de paquete
+MANCHAS PU HPF9;Manchas en PU
+MANCHAS PU Y3;Manchas en PU
+DEFECTO DE MASA;Contaminacion
+PC FALTANTE EN RACK;
+GOLPE EN PC;Marcaciones en PC
+MANCHAS PBV INCOLORO;Mancha en PVB
+MIGRACIÓN DE PU;Migracion PU
+MANCHA EN PVB GRIS;Mancha en PVB gris
+MANCHAS PU Y1;Manchas en PU
+BAJO VITRIFICADO;Vitrificado inadecuado
+BUSBAR VISIBLE;Busbar visible
+FALLA EN TEMPLADO QUIMICO;Templado quimico inadecuado
+PET REBABA;Marcaciones en AL
+TRAZABILIDAD ERRADA;Trazabilidad errada
+MANCHA EN W4;Manchas en PU
+FALTA TEMPLADO QUÍMICO;Templado quimico inadecuado
+PC AL REVÉS;PC invertido
+DEFECTO EN PIEZA POR DESARROLLO ERRADO;Desarrollo errado
+MANCHA EN P9;Manchas en PU
+XIR;XIR inadecuado
+FALTA DE CURVATURA;Curvatura FT
+MANCHA EN NB3;Manchas en PU
+MANCHA EN P1;Manchas en PU
+RAYA EN TECOFLEX;Rayas en tecoflex
+MARCACIONES EN VIDRIO PINTURA;Marcaciones en cristal
+MALA FABRICACIÓN DE PUTE;PU Tejido inadecuado
+DISTORSIÓN EN PAQUETE Y TAPA;Distorsion
+BLEEDER DENTRO DEL PAQUETE;Bleeder en paquete
+MANCHA DE OCRE;Manchas en cristal
+NUBOSIDAD EN LA PIEZA;Manchas en PU
+MANCHA EN PVB 0.76;Mancha en PVB
+FALTA DE TRAZABILIDAD;Trazabilidad errada
+PLANITUD FT;Planitud FT
+CURVATURA DE ACERO EN MAL ESTADO;Acero no conforme
+RASPONES;Raspones
+MANCHA EN PU W3;Manchas en PU
+ARRUGA EN XIR;XIR inadecuado
+APARIENCIA DE ACERO NO CONFORME;Acero no conforme
+BANDA NEGRA CASO CONTRARIO;Banda negra caso contrario
+LOGO ILEGIBLE/INCOMPLETO;Logo errado
+TERMINALES EXPUESTOS;Terminales expuestos
