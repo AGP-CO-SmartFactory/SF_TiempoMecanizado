@@ -4,7 +4,6 @@ from datetime import date, timedelta
 from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
-import dictionaries
 import json
 
 #import datetime as dt
@@ -53,12 +52,12 @@ class Dataframe:
             check_date(path)
             # Loading the dataframe
             try:
-                df_materiales = pd.read_csv(path)
-                return df_materiales
+                df = pd.read_csv(path)
+                return df
             except:
-                df_materiales = pd.read_sql_query(f"With A as (Select OP.Ordem_Serial, OP.Ordem_CodMaterial, OP.Ordem_Centro, D.Desenho_Name, D.Desenho_Path, CASE WHEN D.Desenho_Descricao LIKE '%BORO%' THEN 1 ELSE 0 END AS ALUMINUM, CASE WHEN D.Desenho_Descricao LIKE 'MAAC%' THEN 1 ELSE 0 END AS ACERO, CASE WHEN D.Desenho_Descricao LIKE '%TNT%' THEN 1 ELSE 0 END AS MALLA, CASE WHEN D.Desenho_Descricao LIKE 'CPET%' THEN 1 ELSE 0 END AS AL, CASE WHEN D.Desenho_Descricao LIKE 'PVTE%' THEN 1 ELSE 0 END AS TEJIDO, D.Desenho_Descricao from SAGA_OrdensProducao OP inner join SAGA_Desenhos D on D.Desenho_OrdemSerial = OP.Ordem_Serial where Ordem_Centro in ('CO01', 'BR01') and (Desenho_Descricao like '%BORO%' OR Desenho_Descricao like 'MAAC%' OR Desenho_Descricao like '%TNT%' or Desenho_Descricao like 'CPET%' or Desenho_Descricao like 'PVTE%')) Select CAST (Ordem_Serial as int) as Ordem_Serial, CAST (Ordem_CodMaterial as int) as Ordem_CodMaterial, Ordem_Centro, Desenho_Name, Desenho_Path, SUM(ALUMINUM) as Aluminum, SUM(ACERO) as Acero, SUM(MALLA) as Malla, SUM(AL) as AL, SUM(TEJIDO) as Tejido From A Group by Ordem_Serial, Ordem_CodMaterial, Ordem_Centro, Desenho_Name, Desenho_Path", self.connection)
-                df_materiales.to_csv(path, index=True)
-                return df_materiales
+                df = pd.read_sql_query("With A as (Select OP.Ordem_Serial, OP.Ordem_CodMaterial, OP.Ordem_Centro, CASE WHEN D.Desenho_Descricao LIKE '%BORO%' THEN 1 ELSE 0 END AS ALUMINUM, CASE WHEN D.Desenho_Descricao LIKE 'MAAC%' THEN 1 ELSE 0 END AS ACERO, CASE WHEN D.Desenho_Descricao LIKE '%TNT%' THEN 1 ELSE 0 END AS MALLA, CASE WHEN D.Desenho_Descricao LIKE 'CPET%' THEN 1 ELSE 0 END AS AL, CASE WHEN D.Desenho_Descricao LIKE 'PVTE%' THEN 1 ELSE 0 END AS TEJIDO, D.Desenho_Descricao from SAGA_OrdensProducao OP inner join SAGA_Desenhos D on D.Desenho_OrdemSerial = OP.Ordem_Serial where Ordem_Centro in ('CO01') and (Desenho_Descricao like '%BORO%' OR Desenho_Descricao like 'MAAC%' OR Desenho_Descricao like '%TNT%' or Desenho_Descricao like 'CPET%' or Desenho_Descricao like 'PVTE%')) Select Ordem_Serial, CAST (Ordem_CodMaterial as int) as Ordem_CodMaterial, Ordem_Centro, SUM(ALUMINUM) as Aluminum, SUM(ACERO) as Acero, SUM(MALLA) as Malla, SUM(AL) as AL, SUM(TEJIDO) as Tejido From A Group by Ordem_Serial, Ordem_CodMaterial, Ordem_Centro", self.connection)
+                df.to_csv(path, index=False)
+                return df
 
         if identifier == 1:
             SQLTABLE1 = os.environ.get('SQLTABLEWR1')
@@ -67,9 +66,21 @@ class Dataframe:
             check_date(path)
             # Loading the dataframe
             try:
-                df_WR = pd.read_csv(path, index_col='ZFER')
-                return df_WR
+                df = pd.read_csv(path, index_col='ZFER')
+                return df
             except:
-                df_WR = pd.read_sql_query(f"SELECT DXF_KEY, DXF_NAME, DXF_HEIGHT, DXF_WIDTH, DXF_MIN_RECT, DXF_AREA, DXF_PERIM from {SQLTABLE1} D inner join {SQLTABLE2} C on C.Center_Key = D.DXF_CENTER_KEY WHERE DXF_NAME <> ''", self.connection)
-                df_WR.to_csv(path, index=True)
-                return df_WR   
+                df = pd.read_sql_query(f"SELECT DXF_KEY, DXF_NAME, DXF_HEIGHT, DXF_WIDTH, DXF_MIN_RECT, DXF_AREA, DXF_PERIM from {SQLTABLE1} D inner join {SQLTABLE2} C on C.Center_Key = D.DXF_CENTER_KEY WHERE DXF_NAME <> '' and C.Center_Code= 'CO01'", self.connection)
+                df.to_csv(path, index=True)
+                return df   
+        
+        if identifier == 2:
+            path = './data/df_zferlist.csv'
+            check_date(path)
+            # Loading the dataframe
+            try:
+                df = pd.read_csv(path)
+                return df
+            except:
+                df = pd.read_sql_query("SELECT DISTINCT CAST(OP.Ordem_CodMaterial as int) as Ordem_CodMaterial, D.Desenho_Name from SAGA_OrdensProducao OP inner join SAGA_Desenhos D on D.Desenho_OrdemSerial = OP.Ordem_Serial where Ordem_Centro in ('CO01') and D.Desenho_ZTipo LIKE '%VD%'", self.connection)
+                df.to_csv(path, index=False)
+                return df
