@@ -162,10 +162,14 @@ finally:
             if x['Caja'] == 0:
                 return x
             else:
-                r = 60
-                h = abs(0.5*(x['DXF_PERIM']-x['PerBase']-(2*3.1416*r)+(4*r)))
-                x['x_caja'] = abs(x['DXF_PERIM']+2*(r*(1-3.1416)-h))
-                x['y_caja'] = 2*r+h
+                if x['Desenho_Name'] == '00' or x['Desenho_Name'] == '09':
+                    r = 60
+                    h = abs(0.5*(x['DXF_PERIM']-x['PerBase']-(2*3.1416*r)+(4*r)))
+                    x['x_caja'] = abs(x['DXF_PERIM']+2*(r*(1-3.1416)-h))
+                    x['y_caja'] = 2*r+h
+                else:
+                    return x
+            print(x)
             return x
         df_dxfmaq = df_dxfmaq.apply(definicion_caja, axis=1)
 
