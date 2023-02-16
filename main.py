@@ -63,10 +63,9 @@ def perimetro(x):
                     area = polyarea
         x['Peri_calc'] = perim
         x['Area_calc'] = area/1000000
-        print(x)
         return x
     
-def caja_perforacion(x):
+def caja_perforacion(x):   
     msp = ezdxf.readfile(x['Desenho_Ruta']).modelspace()
     entities = len(msp)
     if entities <= 1:
@@ -142,8 +141,10 @@ finally:
         df_maq = pd.concat([dxf[dxf['Desenho_Name'].str.startswith('PER')], dxf[dxf['Desenho_Name'].str.startswith('MAQ')]])
         df_maq['DXF_NAME'] = df_maq['Desenho_Name']
         df_maq['Desenho_Name'] = df_maq['Desenho_Name'].str[3:]                
-        df_dxfmaq = pd.merge(df_maq, df_WR, how='left', on='DXF_NAME')   
+        df_dxfmaq = pd.merge(df_maq, df_WR, how='left', on='DXF_NAME')
+        print('Asignando variable de perforación') 
         df_dxfmaq = df_dxfmaq.apply(caja_perforacion, axis=1)
+        print('Calculando perímetros de piezas con archivo MAQ')
         df_dxfmaq = df_dxfmaq.apply(perimetro, axis=1)
         df_dxfmaq['DXF_PERIM'] = np.where(df_dxfmaq['DXF_PERIM'].isnull(), df_dxfmaq['Peri_calc'], df_dxfmaq['DXF_PERIM'])
         df_dxfmaq['DXF_AREA'] = np.where(df_dxfmaq['DXF_AREA'].isnull(), df_dxfmaq['Area_calc'], df_dxfmaq['DXF_AREA'])
@@ -153,74 +154,61 @@ finally:
         df_dxfmaq = df_dxfmaq.drop_duplicates().fillna(0)
        
         def definicion_caja(x):
-            if x['DXF_PERIM']-x['PerBase'] > 5:
-                x['Caja'] = 1
-            elif x['PerBase'] == 0 and x['Perforacion'] == 0:
-                x['Caja'] = 1
+            if x['Desenho_Name'][-2:] == '00':
+                r = 60
+                x['h_caja'] = x['DXF_PERIM']-x['PerBase']-(2*np.pi*r)+(8*r)
+                x['w_caja'] = (x['ABase']-x['DXF_AREA'])*1000000/x['h_caja']
+                if x['h_caja'] > 30:
+                    x['Caja'] = 1
+                else:
+                    x['Caja'] = 0
+                    x['h_caja'] = None
+                    x['w_caja']
             else:
                 x['Caja'] = 0
-            if x['Caja'] == 0:
-                return x
-            else:
-                if x['Desenho_Name'] == '00' or x['Desenho_Name'] == '09':
-                    r = 60
-                    h = abs(0.5*(x['DXF_PERIM']-x['PerBase']-(2*3.1416*r)+(4*r)))
-                    x['x_caja'] = abs(x['DXF_PERIM']+2*(r*(1-3.1416)-h))
-                    x['y_caja'] = 2*r+h
-                else:
-                    return x
-            print(x)
             return x
+        print('Calculando dimensiones de cajas')
         df_dxfmaq = df_dxfmaq.apply(definicion_caja, axis=1)
 
         df_dxfmaq.to_csv('./data/dxfmaq.csv', index=False)
         
-    # finally:
-    #     # Desarrollo de la tabla con archivos MAQ y PER
-    #     df_dxfperf = df_dxfmaq[['Desenho_Name', 'Desenho_Ruta', 'Perforacion', 'Caja']]
-    #     df_zferlist = df_zferlist[np.where(df_zferlist['Desenho_Name'].str.startswith('PRO'), False, True)]
-    #     df_zferlist = df_zferlist[['Ordem_CodMaterial', 'Desenho_Name']].drop_duplicates()
-    #     df_dxfperf = df_dxfperf[['Desenho_Name', 'Perforacion', 'Caja']].sort_values(by='Perforacion', ascending=False).drop_duplicates(subset=['Desenho_Name'], keep='first')
-        
-    #     # Cruce de las tablas de ZFER, perforaciones y materiales
-    #     df_zferlist = pd.merge(df_zferlist, df_dxfperf, how='left', on='Desenho_Name')
-    #     df_zferlist = df_zferlist.fillna(0)
-    #     df_zferlist['CodTipoPieza'] = df_zferlist['Desenho_Name'].str[-2:]
-    #     df_zferlist['CodTipoPieza'] = df_zferlist['CodTipoPieza'].str.extract('(\d+)', expand=False)
-    #     df_zferlist = pd.merge(df_zferlist, dxf[['Desenho_Name', 'Desenho_Ruta']], on='Desenho_Name', how='left')
-        
-    #     # Adding dimensions to each of the files
-    #     df_WR = df_WR.rename({'DXF_NAME': 'Desenho_Name'}, axis=1)
-    #     df_zferlist = pd.merge(df_zferlist, df_WR, how='left', on='Desenho_Name')
-        
-    #     # Tabla final
-    #     df_dbzfer = df_zferlist[['Ordem_CodMaterial', 'CodTipoPieza', 'Acero', 'AL', 'Aluminum', 'Caja', 'Malla', 'Perforacion', 'Tejido', 'Desenho_Name', 'DXF_AREA', 'DXF_PERIM', 'Desenho_Ruta']].drop_duplicates(['Ordem_CodMaterial', 'CodTipoPieza', 'Acero', 'AL', 'Aluminum', 'Malla', 'Perforacion', 'Tejido', 'Desenho_Name'])
-    #     df_dbzfer['POS'] = df_dbzfer['Desenho_Name'].str[-3]
-    #     df_dbzfer['POS'] = df_dbzfer['POS'].map(diccionario_claves.claves_modelo)
-    #     indices_posmax = list(df_dbzfer.sort_values(by=['Ordem_CodMaterial', 'POS'], ascending=False).drop_duplicates(['Ordem_CodMaterial', 'CodTipoPieza', 'Acero', 'AL', 'Aluminum', 'Malla', 'Perforacion', 'Tejido']).index)
-    #     df_dbzfer.loc[indices_posmax, 'POS'] = '36VTPA'
-    #     df_dbzfer = df_dbzfer.sort_values(by=['Ordem_CodMaterial', 'POS'], ascending=True)
-        
-    #     # # Calcular valores aproximados de area para determinar archivos errados
-    #     # df_dbzfer = df_dbzfer.apply(area_perimetro, axis=1)
-        
+    finally:
+        def curvado_recortado(x):
+            print(x)
+            try:
+                df = df_dbzfer[df_dbzfer['ZFER'] == x['ZFER']]
+                df = df[0:2]
+                df1 = df[0:1]
+                df2 = df[1:2]
+                if df1['Desenho_Name'].values[0] == df2['Desenho_Name'].values[0]:
+                    x['CurvadoRecortado'] = 0
+                else:
+                    x['CurvadoRecortado'] = 1                
+            except:
+                pass
+            finally:
+                return x
             
-    #     # Creando la base de datos local SQL
-    #     engine = create_engine('sqlite:///char_zfer.db')
-    #     df_dbzfer.to_excel('ZFER_CHAR_CO.xlsx')
-    #     df_dbzfer.to_sql('ZFER_CHARS_CO', con=engine, if_exists='replace', dtype={'CodTipoPieza': types.NVARCHAR(length=2), 'Acero': types.Integer(),
-    #                                                                               'AL': types.Integer(), 'Aluminum': types.Integer(), 'Caja': types.Integer(),
-    #                                                                               'Malla': types.Integer(), 'Perforacion': types.Integer(), 'POS': types.NVARCHAR(length=20),
-    #                                                                               'Tejido': types.Integer()})
-
+        # Desarrollo de la tabla con archivos MAQ y PER
+        df_dxfperf = df_dxfmaq[['DXF_NAME', 'Desenho_Name', 'Perforacion', 'Caja', 'w_caja', 'h_caja']]
+        df_zferlist = df_zferlist[np.where(df_zferlist['Desenho_Name'].str.startswith('PRO'), False, True)]
+        df_zferlist = df_zferlist.drop_duplicates()
+        df_dbzfer = pd.merge(df_zferlist, df_dxfperf, on='Desenho_Name', how='left').drop_duplicates()
+        df_WR = df_WR.rename({'DXF_NAME': 'Desenho_Name'}, axis=1)
+        df_dbzfer = pd.merge(df_dbzfer, df_WR, how='left', on='Desenho_Name')
+        df_dbzfer['CodTipoPieza'] = df_dbzfer['Desenho_Name'].str[-2:]
         
-    #     # # Copiando archivos con error de lectura en Bridge Monitor
-    #     # df_errorlectura = pd.merge(df_dbzfer[df_dbzfer['DXF_AREA'].isna()], dxf, how='left', on=['Desenho_Name', 'Desenho_Ruta'])
-    #     # df_errorlectura = df_errorlectura[np.where(df_errorlectura['Desenho_Ruta'].isna(), False, True)]
-    #     # lista_errores_bridge = list(df_errorlectura['Desenho_Ruta'])
-    #     # lista_errores_area = list(df_difarea['Desenho_Ruta'])
-    #     # for i in lista_errores_bridge:
-    #     #     shutil.copy(i, r'\\192.168.2.2\general\Smart Factory\Caracteristicas producto\Errores BridgeMonitor\Errores lectura')
-        
-    #     # for i in lista_errores_area:
-    #     #     shutil.copy(i, r'\\192.168.2.2\general\Smart Factory\Caracteristicas producto\Errores BridgeMonitor\Errores area')
+        # Agregando info de curvado recortado
+        df_cr = df_dbzfer[df_dbzfer['POS'] == '0100'][['ZFER', 'Desenho_Name', 'POS']]
+        print('Asignando variable de curvado recortado')
+        df_cr = df_cr.apply(curvado_recortado, axis=1)
+        df_dbzfer = pd.merge(df_dbzfer, df_cr[['ZFER', 'CurvadoRecortado']], on='ZFER', how='left')
+        # Creando la base de datos local SQL
+        df_dbzfer = df_dbzfer.rename({'CLV_MODEL': 'ClaveModelo', 'Desenho_Name': 'DesenhoName', 'Desenho_ZTipo': 'ZTipo', 'POS': 'Pos', 
+                          'DXF_NAME': 'ArchivoMecanizado', 'DXF_AREA': 'AreaReal', 'DXF_PERIM': 'PerimetroReal', 'CodTipoPieza': 'CodPieza'}, axis=1)
+        # engine = create_engine('sqlite:///char_zfer.db')
+        df_dbzfer.to_csv(r'\\192.168.2.2\general\Smart Factory\ZFER_CHAR_CO.csv')
+        # df_dbzfer.to_sql('ZFER_CHARS_CO', con=engine, if_exists='replace', dtype={'ZFER': types.Integer(), 'ClaveModelo': types.NVARCHAR(length=25), 'DesenhoName': types.NVARCHAR(length=25),
+        #                                                                           'CodPieza': types.NVARCHAR(length=2), 'Acero': types.Integer(), 'AL': types.Integer(), 'Aluminum': types.Integer(), 
+        #                                                                           'Caja': types.Integer(), 'Malla': types.Integer(), 'Perforacion': types.Integer(), 'Pos': types.NVARCHAR(length=20),
+        #                                                                           'Tejido': types.Integer()})

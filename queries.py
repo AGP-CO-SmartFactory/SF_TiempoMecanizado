@@ -14,7 +14,7 @@ SUM(ALUMINUM) as Aluminum, SUM(ACERO) as Acero, SUM(MALLA) as Malla, SUM(AL) as 
 From A 
 Group by Ordem_Serial, Ordem_CodMaterial)
 
-SELECT O.Ordem_CodMaterial as ZFER, Desenho_ClaveModelo as CLV_MODEL, Desenho_Name, Desenho_ZTipo, CAST(Desenho_CodMat as int) as CodMat, 
+SELECT O.Ordem_CodMaterial as ZFER, Desenho_ClaveModelo as CLV_MODEL, Desenho_Name, Desenho_ZTipo, CAST(Desenho_CodMat as int) as CodMat, D.ADICIONAL_1 as POS,
 	CAST(D.ADICIONAL_2 as float) as AreaConsumo, ISNULL(M.Acero, 0) as Acero, ISNULL(M.AL, 0) as Al, 
 	ISNULL(M.Aluminum, 0) as Boro, ISNULL(M.Malla, 0) as TNT, ISNULL(M.Tejido, 0) as PVTE
 FROM SAGA_Desenhos D
@@ -24,6 +24,6 @@ WHERE Desenho_OrdemSerial like '1%'
 AND O.Ordem_Centro = 'CO01'
 AND Datalength(Desenho_Name) > 0
 AND Desenho_ZTipo like 'Z_%'
-GROUP BY O.Ordem_CodMaterial, Desenho_ClaveModelo, Desenho_Name, Desenho_ZTipo, Desenho_CodMat, D.ADICIONAL_5, D.ADICIONAL_2, M.Acero, M.AL, M.Aluminum, M.Malla, M.Tejido
+GROUP BY O.Ordem_CodMaterial, Desenho_ClaveModelo, Desenho_Name, Desenho_ZTipo, Desenho_CodMat, D.ADICIONAL_5, D.ADICIONAL_1, D.ADICIONAL_2, M.Acero, M.AL, M.Aluminum, M.Malla, M.Tejido
 ORDER BY ZFER, CLV_MODEL'''
 
