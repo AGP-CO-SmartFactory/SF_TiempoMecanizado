@@ -25,7 +25,13 @@ class Connection:
             server = os.environ.get("SERSAGA")
             database = os.environ.get("DATSAGA")
             uid = os.environ.get("UIDSAGA")
-            pwd = os.environ.get("PWDSAGA")         
+            pwd = os.environ.get("PWDSAGA")    
+        
+        if identifier == 3:
+            server = os.environ.get("SERCAL")
+            database = os.environ.get("DATCAL")
+            uid = os.environ.get("UID")
+            pwd = os.environ.get("PWD")  
 
         parameters = [server, database, uid, pwd]
         return parameters

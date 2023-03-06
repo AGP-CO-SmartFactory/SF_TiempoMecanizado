@@ -27,3 +27,13 @@ AND Desenho_ZTipo like 'Z_%'
 GROUP BY O.Ordem_CodMaterial, Desenho_ClaveModelo, Desenho_Name, Desenho_ZTipo, Desenho_CodMat, D.ADICIONAL_5, D.ADICIONAL_1, D.ADICIONAL_2, M.Acero, M.AL, M.Aluminum, M.Malla, M.Tejido
 ORDER BY ZFER, CLV_MODEL'''
 
+webservice_query = """SELECT DXF_NAME, DXF_HEIGHT, DXF_WIDTH, DXF_AREA, DXF_PERIM 
+    from SAP_DXF D 
+        inner join SAP_DXF_CENTER C on C.Center_Key = D.DXF_CENTER_KEY 
+        WHERE DXF_NAME <> '' and C.Center_Code= 'CO01'"""
+        
+calzfer_query = """SELECT CAST(CodMaterial as int) as ZFER,
+CASE WHEN ChemTempering = 'SÍ' THEN 1 ELSE 0 END as TQ 
+FROM CALENDARIO_ZFER_CHARACTERISTICS
+WHERE (ChemTempering = 'SÍ')
+AND PlantasFabricacao = 'CO01'"""
