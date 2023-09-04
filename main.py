@@ -105,6 +105,7 @@ def main():
     df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo'}, axis=1)
     
     sql.data_update(df2) # Carga de datos al dataframe
+    return df_nullZFOR
 
 if __name__ == '__main__':
-    main()
+    null_ZFOR = main()
