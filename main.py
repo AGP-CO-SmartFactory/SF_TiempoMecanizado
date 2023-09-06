@@ -4,9 +4,6 @@ This code collects and calculates the primary characteristics for a ZFER produce
 It makes a recollection of all the critical variables in the different databases that the company has
 and combines them into a single dataframe that is to be exported to a SQL Server table. 
 
-This code uses sqlalchemy, ezdxf, pandas, numpy and dxfasc, a library written by nikhartam to calculate
-the perimeter of a .dxf file. 
-
 The use of this code is exclusive for AGP Glass and cannot be sold or distributed to other companies.
 Unauthorized distribution of this code is a violation of AGP intellectual property.
 
@@ -67,21 +64,21 @@ def main():
     
     # Extraer los valores null en el ZFOR
     df_nullZFOR = df[pd.isnull(df['ZFOR'])] 
-    
-    # Tomar únicamente los vidrios con mecanizado de df
-    df = df.dropna(subset='ZFOR')
-    df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo']].astype({'ZFOR': int}), on=['ZFOR', 'ClaveModelo'], how='inner').drop_duplicates()
+    df = df.dropna(subset=['ZFOR'])
     df = pd.merge(df.astype({'ZFOR': int}), df_pinturas[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
+    
+    # Combinar los vidrios con mecanizado de df
+    df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
     df = pd.concat([df, df_nullZFOR]) # Introducir de nuevo los lites sin ZFOR para referencia
-    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion':'', 'ZFOR': 0})
+    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion_x':'', 'Operacion_y':'', 'ZFOR': 0})
     
     # Desde este punto se tienen que calcular las diferentes características
     df['Perimetro'] = (df['ANCHO']*2 + df['LARGO']*2)*(1-0.089)
-    df['BrilloC'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' or x['Operacion'] == 'SERIGRAFIA') and 'Brillante' in x['BordePintura'] and 'Bisel' not in x['BordePintura'] else False, axis=1)
-    df['BrilloP'] = df.apply(lambda x: True if 'Brillante' in x['BordePaquete'] and (x['ClaveModelo'] == '01VEXT' or x['Operacion'] == 'SERIGRAFIA') else False, axis=1)
-    df['Bisel'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) or (x['ZFER'] == 700027561 and x['ClaveModelo'] == '01VEXT') else False, axis=1)
-    df['CantoC'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' or x['Operacion'] == 'SERIGRAFIA') and x['BrilloC'] != True and x['BrilloP'] != True and x['Bisel'] != True else False, axis=1)
-    df['CantoP'] = df.apply(lambda x: True if (x['ClaveModelo'] != '01VEXT' and  x['Operacion'] != 'SERIGRAFIA') or () else False, axis=1)
+    df['BrilloC'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' or x['Operacion_x'] == 'SERIGRAFIA') and 'Brillante' in x['BordePintura'] and 'Bisel' not in x['BordePintura'] and x['Operacion_y'] == 'MECANIZADO'  else False, axis=1)
+    df['BrilloP'] = df.apply(lambda x: True if 'Brillante' in x['BordePaquete'] and (x['ClaveModelo'] == '01VEXT' or x['Operacion'] == 'SERIGRAFIA') and x['Operacion_y'] == 'MECANIZADO' else False, axis=1)
+    df['Bisel'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) or (x['ZFER'] == 700027561 and x['ClaveModelo'] == '01VEXT') and x['Operacion_y'] == 'MECANIZADO' else False, axis=1)
+    df['CantoC'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' or x['Operacion_x'] == 'SERIGRAFIA') and x['BrilloC'] != True and x['BrilloP'] != True and x['Bisel']!=True and x['Operacion_y'] == 'MECANIZADO' != True else False, axis=1)
+    df['CantoP'] = df.apply(lambda x: True if (x['ClaveModelo'] != '01VEXT' and  x['Operacion_x'] != 'SERIGRAFIA') and x['Operacion_y'] == 'MECANIZADO' else False, axis=1)
     
     # A partir de esta tabla se toman los avances de la CNC y se calculan los tiempos por medio de la función
     def calculate_time(x):
@@ -95,14 +92,16 @@ def main():
         elif x['CantoC'] == True:
             tiempo = round(x['Perimetro']/avance['AvanceCantoC'].values[0], 2)
         elif x['CantoP'] == True:
-            tiempo = round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)        
+            tiempo = round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
+        else:
+            tiempo = 0
         x['Tiempo'] = tiempo
         return x
     
     df_avances = pd.read_sql(parameters.queries['query_avances'], conn_smartf.conn)
     df = df.apply(calculate_time, axis=1)
-    df2 = df[['Orden', 'ZFER', 'CodTipoPieza', 'POSICION', 'CLASE', 'ANCHO', 'LARGO', 'ClaveModelo', 'Perimetro', 'Tiempo']]
-    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo'}, axis=1)
+    df2 = df.drop(['BordePintura', 'BordePaquete'], axis=1)
+    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Operacion_y': 'Operacion2', 'Operacion_x': 'Operacion1'}, axis=1)
     
     sql.data_update(df2) # Carga de datos al dataframe
     return df_nullZFOR
