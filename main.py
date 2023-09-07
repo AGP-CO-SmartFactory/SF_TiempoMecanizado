@@ -41,22 +41,30 @@ def main():
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], conn_colsap.conn)
     
     # Create a query for the HR table
-    parameters.create_query(query=f"""WITH a as (SELECT MATNR as ZFOR, PLNNR as HojaRuta FROM ODATA_HR_MAPL O with (nolock)
-    				inner join ODATA_HR_CONSULTA C on C.ID_HRUTA = O.PLNNR WHERE WERKS = 'CO01' AND MATNR in ({sql_unique_zfor}) GROUP BY MATNR, PLNNR)
-                    SELECT PLNNR as HojaRuta, KTSCH as ClaveModelo, LTXA1 as Operacion, ZFOR FROM ODATA_HR_PLPO o with (nolock) 
-                    	inner join a on a.HojaRuta = o.PLNNR WHERE LTXA1 = 'MECANIZADO'
+    parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_MECANIZADO FROM ODATA_HR_CONSULTA with (nolock) WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''),
+                        zfor as (SELECT MATNR as ZFOR, PLNNR as HojaRuta FROM ODATA_HR_MAPL O with (nolock) WHERE WERKS='CO01' and MATNR in ({sql_unique_zfor}) GROUP BY MATNR, PLNNR)
+
+                        SELECT ZFOR, TXT_MECANIZADO as ClaveModelo, MAX(HojaRuta) as HojaRuta FROM HR with (nolock)
+                        inner join zfor on HR.ID_HRUTA = zfor.HojaRuta GROUP BY ZFOR, TXT_MECANIZADO
                         """, dict_name='hojasruta')
     
     df_hojasruta = pd.read_sql(parameters.queries['hojasruta'], conn_produc.conn)
+    df_hojasruta['Operacion'] = 'MECANIZADO'
+    df_hojasruta['ClaveModelo'] = df_hojasruta['ClaveModelo'].str.split(',')
+    df_hojasruta = df_hojasruta.explode('ClaveModelo')
     
     # Create a query for the HR table to return the windows with black band
-    parameters.create_query(query=f"""WITH a as (SELECT MATNR as ZFOR, PLNNR as HojaRuta FROM ODATA_HR_MAPL O with (nolock)
-    				inner join ODATA_HR_CONSULTA C on C.ID_HRUTA = O.PLNNR WHERE WERKS = 'CO01' AND MATNR in ({sql_unique_zfor}) GROUP BY MATNR, PLNNR)
-                    SELECT PLNNR as HojaRuta, KTSCH as ClaveModelo, LTXA1 as Operacion, ZFOR FROM ODATA_HR_PLPO o with (nolock) 
-                    	inner join a on a.HojaRuta = o.PLNNR WHERE LTXA1 = 'SERIGRAFIA'
+    parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_SERIGRAFIA FROM ODATA_HR_CONSULTA with (nolock) WHERE TXT_SERIGRAFIA is not null and TXT_SERIGRAFIA <> ''),
+                        zfor as (SELECT MATNR as ZFOR, PLNNR as HojaRuta FROM ODATA_HR_MAPL O with (nolock) WHERE WERKS='CO01' and MATNR in ({sql_unique_zfor}) GROUP BY MATNR, PLNNR)
+
+                        SELECT ZFOR, TXT_SERIGRAFIA as ClaveModelo, MAX(HojaRuta) as HojaRuta FROM HR with (nolock)
+                        inner join zfor on HR.ID_HRUTA = zfor.HojaRuta GROUP BY ZFOR, TXT_SERIGRAFIA
                         """, dict_name='hojasruta_serigrafia')
     
     df_pinturas = pd.read_sql(parameters.queries['hojasruta_serigrafia'], conn_produc.conn)
+    df_pinturas['Operacion'] = 'SERIGRAFIA'
+    df_pinturas['ClaveModelo'] = df_pinturas['ClaveModelo'].str.split(',')
+    df_pinturas = df_pinturas.explode('ClaveModelo')
     
     df = pd.merge(df_calendario, df_zfer_head, on='ZFER', how='outer')
     df = pd.merge(df, df_zfer_bom, on='ZFER', how='outer').drop_duplicates()
