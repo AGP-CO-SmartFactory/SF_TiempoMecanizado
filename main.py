@@ -31,7 +31,7 @@ def main():
                             where=f"WHERE MATERIAL in ({cal_unique_zfer})", dict_name='zfer_head')
     
     df_zfer_head = pd.read_sql(parameters.queries['zfer_head'], conn_colsap.conn).drop_duplicates('ZFER', keep='first')
-    unique_zfor = list(df_zfer_head['ZFOR'].unique())
+    unique_zfor = list(df_zfer_head['ZFOR'].dropna().unique())
     sql_unique_zfor = str(unique_zfor)[1:-1]
     
     # Create a query for the ZFER_bom dataframe
@@ -39,6 +39,7 @@ def main():
                             where=f"WHERE MATERIAL in ({cal_unique_zfer}) AND CLASE like 'Z_VD%' AND CENTRO = 'CO01' ORDER BY ZFER, POSICION ASC", dict_name='zfer_bom')
     
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], conn_colsap.conn)
+    df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1)
     
     # Create a query for the HR table
     parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_MECANIZADO FROM ODATA_HR_CONSULTA with (nolock) WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''),
