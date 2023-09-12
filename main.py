@@ -107,7 +107,26 @@ def main():
         x['Tiempo'] = tiempo
         return x
     
+    def add_chars(x):
+        '''
+        Esta función me agrega los tipos de acabado faltantes a partir del canto inicial:
+            Canto C -> Se le agrega canto P
+            Brillo -> Se le agrega canto P y canto C
+            Bisel -> Se le agrega canto P y canto C
+
+        '''
+        if x['BrilloC'] == True:
+            x['CantoC'] = True
+            x['CantoP'] = True
+        elif x['BrilloP'] == True:
+            x['CantoC'] = True
+            x['CantoP'] = True
+        elif x['CantoC'] == True:
+            x['CantoP'] = True
+        return x
+    
     df_avances = pd.read_sql(parameters.queries['query_avances'], conn_smartf.conn)
+    df = df.apply(add_chars, axis=1)
     df = df.apply(calculate_time, axis=1)
     df2 = df.drop(['BordePintura', 'BordePaquete'], axis=1)
     df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Operacion_y': 'Operacion2', 'Operacion_x': 'Operacion1'}, axis=1)
