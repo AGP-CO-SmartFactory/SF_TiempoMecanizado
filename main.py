@@ -118,6 +118,9 @@ def main():
         if x['BrilloC'] == True:
             x['CantoC'] = True
             x['CantoP'] = True
+        elif x['Bisel'] == True:
+            x['CantoC'] = True
+            x['CantoP'] = True
         elif x['BrilloP'] == True:
             x['CantoC'] = True
             x['CantoP'] = True
