@@ -92,18 +92,17 @@ def main():
     # A partir de esta tabla se toman los avances de la CNC y se calculan los tiempos por medio de la función
     def calculate_time(x):
         avance = df_avances[df_avances['Referencia'] == x['CLASE']]
+        tiempo = 0
         if x['BrilloC'] == True:
-            tiempo = round((x['Perimetro']/avance['AvanceBrilloC']).values[0], 2)
-        elif x['BrilloP'] == True:
-            tiempo = round((x['Perimetro']/avance['AvanceBrilloPlano']).values[0], 2)
-        elif x['Bisel'] == True:
-            tiempo = round(x['Perimetro']/avance['AvanceBisel'].values[0], 2)
-        elif x['CantoC'] == True:
-            tiempo = round(x['Perimetro']/avance['AvanceCantoC'].values[0], 2)
-        elif x['CantoP'] == True:
-            tiempo = round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
-        else:
-            tiempo = 0
+            tiempo += round((x['Perimetro']/avance['AvanceBrilloC']).values[0], 2)
+        if x['BrilloP'] == True:
+            tiempo += round((x['Perimetro']/avance['AvanceBrilloPlano']).values[0], 2)
+        if x['Bisel'] == True:
+            tiempo += round(x['Perimetro']/avance['AvanceBisel'].values[0], 2)
+        if x['CantoC'] == True:
+            tiempo += round(x['Perimetro']/avance['AvanceCantoC'].values[0], 2)
+        if x['CantoP'] == True:
+            tiempo += round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
         x['Tiempo'] = tiempo
         return x
     
