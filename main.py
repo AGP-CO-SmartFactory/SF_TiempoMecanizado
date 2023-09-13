@@ -103,7 +103,7 @@ def main():
             tiempo += round(x['Perimetro']/avance['AvanceCantoC'].values[0], 2)
         if x['CantoP'] == True:
             tiempo += round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
-        x['Tiempo'] = tiempo
+        x['Tiempo'] = tiempo + 0.25 + 2
         return x
     
     def add_chars(x):
