@@ -30,7 +30,11 @@ conexiones = {'SERING': os.environ.get('SERING'),
     'PWDSF': os.environ.get('PWDSF')}
 
 queries = {'query_calendario': "SELECT CodTipoPieza, CAST(Orden as int) Orden, CAST(ZFER as int) as ZFER, BordePintura, BordePaquete FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' AND Puestodetrabajo not in ('Ingenieria') AND Orden > 0 AND Orden < 99999999",
-           'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC"
+           'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC",
+           'query_cajas': """SELECT MATERIAL as ZFER FROM ODATA_ZFER_CLASS_001 WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS' 
+                               AND ATWRT like '%01%' AND CENTRO = 'CO01'""", #01 son cajas, 02 son chaflanes y 03 son perforaciones
+           'query_perforacion': """SELECT MATERIAL as ZFER FROM ODATA_ZFER_CLASS_001 WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS' 
+                            AND ATWRT like '%03%' AND CENTRO = 'CO01'"""
     }
 
 def create_query(query, dict_name, where=None):
