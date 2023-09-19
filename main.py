@@ -109,7 +109,7 @@ def main():
         if x['CantoP'] == True:
             tiempo += round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
         if x['Operacion_y'] == 'MECANIZADO':
-            x['Tiempo'] = tiempo + 2 + x['Cambios']*0.25
+            x['Tiempo'] = tiempo + 3 + x['Cambios']*0.25
         return x
     
     def add_chars(x):
