@@ -14,7 +14,6 @@ class Connection:
         self.conn = self.connect()
     
     def connect(self):       
-        # conn = pyodbc.connect(f'DRIVER=ODBC Driver 18 for SQL Server;SERVER={self.server};DATABASE={self.database};UID={self.uid};PWD={self.pwd}')
         connection_url = URL.create(
             "mssql+pyodbc",
             username=self.uid,
