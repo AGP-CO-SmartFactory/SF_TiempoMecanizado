@@ -18,7 +18,7 @@ from databases import Databases
 from functions import Functions
 
 def main():
-    print('Descargando información...\n')
+    print('Inicializando programa...\n')
     db = Databases()
     functions = Functions(db.conn_smartf)
     df_base = pd.read_sql(parameters.queries['query_calendario'], db.conn_calend)
@@ -31,16 +31,16 @@ def main():
     unique_zfor = list(df_zfer_head['ZFOR'].dropna().unique())
     sql_unique_zfor = str(unique_zfor)[1:-1]
     # Create a query for the ZFER_HEAD dataframe - END
-
+    print('Descargando información desde ingeniería...\n')
     # Create a query for the ZFER_bom dataframe - START
     parameters.create_query(query="""SELECT MATERIAL as ZFER, POSICION, CLASE, CAST(DIMEN_BRUTA_1 as float) as ANCHO, 
-                            CAST(DIMEN_BRUTA_2 as float) as LARGO FROM ODATA_ZFER_BOM","""
+                            CAST(DIMEN_BRUTA_2 as float) as LARGO FROM ODATA_ZFER_BOM""",
                             where=f"""WHERE MATERIAL in ({cal_unique_zfer}) AND CLASE like 'Z_VD%' AND CENTRO = 'CO01' 
                             ORDER BY ZFER, POSICION ASC""", dict_name='zfer_bom')    
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], db.conn_colsap)
     df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1)
     # Create a query for the ZFER_bom dataframe - END
-
+    print('Leyendo datos desde hojas de ruta de mecanizado...\n')
     # Create a query for the HR table - START
     parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_MECANIZADO FROM ODATA_HR_CONSULTA 
                             with (nolock) WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''),
@@ -53,7 +53,7 @@ def main():
     df_hojasruta['ClaveModelo'] = df_hojasruta['ClaveModelo'].str.split(',')
     df_hojasruta = df_hojasruta.explode('ClaveModelo')
     # Create a query for the HR table - END
-
+    print('Leyendo datos desde hojas de ruta de serigrafía...\n')
     # Create a query for the HR table to return the windows with black band - START
     parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_SERIGRAFIA FROM ODATA_HR_CONSULTA 
                             with (nolock) WHERE TXT_SERIGRAFIA is not null and TXT_SERIGRAFIA <> ''),
@@ -67,34 +67,33 @@ def main():
     df_pinturas['ClaveModelo'] = df_pinturas['ClaveModelo'].str.split(',')
     df_pinturas = df_pinturas.explode('ClaveModelo')
     # Create a query for the HR table to return the windows with black band - END
-
+    print('Unificando tablas...\n')
     # Merging the base dataframe into one
     df = pd.merge(df_base, df_zfer_head, on='ZFER', how='outer')
     df = pd.merge(df, df_zfer_bom, on='ZFER', how='outer').drop_duplicates()
     df['ClaveModelo'] = df['POSICION'].map(parameters.dict_clavesmodelo)
-
+    print('Creando datos para perforaciones...\n')
     # Agregar la característica de perforacion a los ZFER en la lista
     df_perf = pd.read_sql(parameters.queries['query_perforacion'], db.conn_colsap)
     df_perf['Perforacion'] = 1
     df_perf2 = pd.merge(df, df_perf, on='ZFER', how='right').dropna().drop_duplicates()
-
+    print('Eliminando valores nulos...\n')
     # Extraer los valores null en el ZFOR
     df_nullZFOR = df[pd.isnull(df['ZFOR'])] 
     df = df.dropna(subset=['ZFOR'])
-    df = pd.merge(df.astype({'ZFOR': int}), df_pinturas[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), 
+    df = pd.merge(df.astype({'ZFOR': int}), df_pinturas[['ZFOR', 'ClaveModelo', 'Operacion2']].astype({'ZFOR': int}), 
                   on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()  
-      
+    print('Combinando tablas...\n')
     # Combinar los vidrios con mecanizado de df
-    df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), 
+    df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo', 'Operacion1']].astype({'ZFOR': int}), 
                   on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
     df = pd.concat([df, df_nullZFOR]) # Introducir de nuevo los lites sin ZFOR para referencia
-    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion_x':'', 'Operacion_y':'', 'ZFOR': 0, 'Caja': 0})    
+    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0})    
     df = functions.definir_cantos(df)    
     df = df.apply(functions.agregar_pasadas, axis=1)
     df = df.apply(functions.tiempo_acabado, axis=1)
-    df2 = df.drop(['BordePintura', 'BordePaquete', 'Cambios'], axis=1)
-    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 
-                      'Operacion_y': 'Operacion2', 'Operacion_x': 'Operacion1'}, axis=1)
+    df2 = df.drop(['BordePintura', 'BordePaquete', 'Cambios', 'Area'], axis=1)
+    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo'}, axis=1)
     df2 = df2.drop_duplicates(subset=['Orden', 'ZFER', 'ClaveModelo'], keep='first')
-    #sql.data_update(df2) # Carga de datos al dataframe
+    sql.data_update(df2) # Carga de datos al dataframe
     return df2

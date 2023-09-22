@@ -19,9 +19,8 @@ def main(*args):
         return at.main()
         
     if args[0] == '2':
-        #return consulta.main()
-        pass 
+        return consulta.main()  
 
 if __name__ == '__main__':
-    tabla = main('1')
-    print(tabla.head(20))
+    tabla = main(sys.argv[1])
+    print(tabla)
