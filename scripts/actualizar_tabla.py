@@ -34,8 +34,8 @@ def main():
 
     # Create a query for the ZFER_bom dataframe - START
     parameters.create_query(query="""SELECT MATERIAL as ZFER, POSICION, CLASE, CAST(DIMEN_BRUTA_1 as float) as ANCHO, 
-                            CAST(DIMEN_BRUTA_2 as float) as LARGO FROM ODATA_ZFER_BOM",
-                            where=f"WHERE MATERIAL in ({cal_unique_zfer}) AND CLASE like 'Z_VD%' AND CENTRO = 'CO01' 
+                            CAST(DIMEN_BRUTA_2 as float) as LARGO FROM ODATA_ZFER_BOM","""
+                            where=f"""WHERE MATERIAL in ({cal_unique_zfer}) AND CLASE like 'Z_VD%' AND CENTRO = 'CO01' 
                             ORDER BY ZFER, POSICION ASC""", dict_name='zfer_bom')    
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], db.conn_colsap)
     df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1)
