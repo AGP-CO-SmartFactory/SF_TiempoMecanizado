@@ -1,11 +1,13 @@
 
 """
-This code collects and calculates the primary characteristics for a ZFER produced in AGP SGlass CO.
-It makes a recollection of all the critical variables in the different databases that the company has
-and combines them into a single dataframe that is to be exported to a SQL Server table. 
+This code collects and calculates the primary characteristics for a ZFER produced 
+in AGP SGlass CO. It makes a recollection of all the critical variables in the 
+different databases that the company has and combines them into a single dataframe 
+that is to be exported to a SQL Server table. 
 
-The use of this code is exclusive for AGP Glass and cannot be sold or distributed to other companies.
-Unauthorized distribution of this code is a violation of AGP intellectual property.
+The use of this code is exclusive for AGP Glass and cannot be sold or 
+distributed to other companies. Unauthorized distribution of this code is a 
+violation of AGP intellectual property.
 
 Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 """
@@ -17,11 +19,14 @@ import sql
 
 def main():
     print('Descargando información...\n')
-    conn_calend = Connection(parameters.conexiones['SERCAL'], parameters.conexiones['DATCAL'], parameters.conexiones['UIDCAL'], parameters.conexiones['PWDCAL'])
-    conn_colsap = Connection(parameters.conexiones['SERING'], parameters.conexiones['DATING'], parameters.conexiones['UIDING'], parameters.conexiones['PWDING'])
-    conn_produc = Connection(parameters.conexiones['SERCP'], parameters.conexiones['DATCP'], parameters.conexiones['UIDCP'], parameters.conexiones['PWDCP'])
-    conn_smartf = Connection(parameters.conexiones['SERSF'], parameters.conexiones['DATSF'], parameters.conexiones['UIDSF'], parameters.conexiones['PWDSF'])
-    
+    conn_calend = Connection(parameters.conexiones['SERCAL'], parameters.conexiones['DATCAL'], 
+                             parameters.conexiones['UIDCAL'], parameters.conexiones['PWDCAL'])
+    conn_colsap = Connection(parameters.conexiones['SERING'], parameters.conexiones['DATING'], 
+                             parameters.conexiones['UIDING'], parameters.conexiones['PWDING'])
+    conn_produc = Connection(parameters.conexiones['SERCP'], parameters.conexiones['DATCP'], 
+                             parameters.conexiones['UIDCP'], parameters.conexiones['PWDCP'])
+    conn_smartf = Connection(parameters.conexiones['SERSF'], parameters.conexiones['DATSF'], 
+                             parameters.conexiones['UIDSF'], parameters.conexiones['PWDSF'])    
     df_calendario = pd.read_sql(parameters.queries['query_calendario'], conn_calend.conn)
     unique_zfer = list(df_calendario['ZFER'].unique())
     cal_unique_zfer = str(unique_zfer)[1:-1] # This ZFER list filter all of the queries from now on
@@ -79,34 +84,35 @@ def main():
     # Extraer los valores null en el ZFOR
     df_nullZFOR = df[pd.isnull(df['ZFOR'])] 
     df = df.dropna(subset=['ZFOR'])
-    df = pd.merge(df.astype({'ZFOR': int}), df_pinturas[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
+    df = pd.merge(df.astype({'ZFOR': int}), df_pinturas[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), 
+                  on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
     
     # Combinar los vidrios con mecanizado de df
-    df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
+    df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo', 'Operacion']].astype({'ZFOR': int}), 
+                  on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
     df = pd.concat([df, df_nullZFOR]) # Introducir de nuevo los lites sin ZFOR para referencia
     df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion_x':'', 'Operacion_y':'', 'ZFOR': 0, 'Caja': 0})
     
     # Desde este punto se tienen que calcular las diferentes características
     df['Perimetro'] = (df['ANCHO']*2 + df['LARGO']*2)*(1-0.089)
-    df['BrilloC'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' or x['Operacion_x'] == 'SERIGRAFIA') and 'Brillante' in x['BordePintura'] and 'Bisel' not in x['BordePintura'] and x['Operacion_y'] == 'MECANIZADO'  else False, axis=1)
-    df['BrilloP'] = df.apply(lambda x: True if 'Brillante' in x['BordePaquete'] and (x['ClaveModelo'] == '01VEXT' or x['Operacion'] == 'SERIGRAFIA') and x['Operacion_y'] == 'MECANIZADO' else False, axis=1)
-    df['Bisel'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) or (x['ZFER'] == 700027561 and x['ClaveModelo'] == '01VEXT') and x['Operacion_y'] == 'MECANIZADO' else False, axis=1)
-    df['CantoC'] = df.apply(lambda x: True if (x['ClaveModelo'] == '01VEXT' or x['Operacion_x'] == 'SERIGRAFIA') and x['BrilloC'] != True and x['BrilloP'] != True and x['Bisel']!=True and x['Operacion_y'] == 'MECANIZADO' != True else False, axis=1)
-    df['CantoP'] = df.apply(lambda x: True if (x['ClaveModelo'] != '01VEXT' and  x['Operacion_x'] != 'SERIGRAFIA') and x['Operacion_y'] == 'MECANIZADO' else False, axis=1)
-    
+    df['BrilloC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' or x['Operacion_x'] == 'SERIGRAFIA') and 'Brillante' in x['BordePintura'] and 'Bisel' not in x['BordePintura'] and x['Operacion_y'] == 'MECANIZADO'), axis=1)
+    df['BrilloP'] = df.apply(lambda x: bool('Brillante' in x['BordePaquete'] and (x['ClaveModelo'] == '01VEXT' or x['Operacion'] == 'SERIGRAFIA') and x['Operacion_y'] == 'MECANIZADO'), axis=1)
+    df['Bisel'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) or (x['ZFER'] == 700027561 and x['ClaveModelo'] == '01VEXT') and x['Operacion_y'] == 'MECANIZADO'), axis=1)
+    df['CantoC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' or x['Operacion_x'] == 'SERIGRAFIA') and not x['BrilloC'] and not x['BrilloP'] and not x['Bisel'] and not x['Operacion_y'] == 'MECANIZADO'), axis=1)
+    df['CantoP'] = df.apply(lambda x: bool((x['ClaveModelo'] != '01VEXT' and  x['Operacion_x'] != 'SERIGRAFIA') and x['Operacion_y'] == 'MECANIZADO'), axis=1)    
     # A partir de esta tabla se toman los avances de la CNC y se calculan los tiempos por medio de la función
     def calculate_time(x):
         avance = df_avances[df_avances['Referencia'] == x['CLASE']]
         tiempo = 0
-        if x['BrilloC'] == True:
+        if x['BrilloC']:
             tiempo += round((x['Perimetro']/avance['AvanceBrilloC']).values[0], 2)
-        if x['BrilloP'] == True:
+        if x['BrilloP']:
             tiempo += round((x['Perimetro']/avance['AvanceBrilloPlano']).values[0], 2)
-        if x['Bisel'] == True:
+        if x['Bisel']:
             tiempo += round(x['Perimetro']/avance['AvanceBisel'].values[0], 2)
-        if x['CantoC'] == True:
+        if x['CantoC']:
             tiempo += round(x['Perimetro']/avance['AvanceCantoC'].values[0], 2)
-        if x['CantoP'] == True:
+        if x['CantoP']:
             tiempo += round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
         if x['Operacion_y'] == 'MECANIZADO':
             x['Tiempo'] = tiempo + 3 + x['Cambios']*0.25
@@ -120,17 +126,17 @@ def main():
             Bisel -> Se le agrega canto P y canto C
 
         '''
-        if x['BrilloC'] == True:
+        if x['BrilloC']:
             x['CantoC'] = True
             x['CantoP'] = True
-        elif x['Bisel'] == True:
+        elif x['Bisel']:
             x['CantoC'] = True
             x['CantoP'] = True
             x['BrilloC'] = True
-        elif x['BrilloP'] == True:
+        elif x['BrilloP']:
             x['CantoC'] = True
             x['CantoP'] = True
-        elif x['CantoC'] == True:
+        elif x['CantoC']:
             x['CantoP'] = True
         cambios_herramienta = 0
         for z in [x['BrilloC'], x['CantoC'], x['CantoP'], x['Bisel'], x['BrilloP']]:
@@ -146,7 +152,8 @@ def main():
     df = df.apply(add_chars, axis=1)
     df = df.apply(calculate_time, axis=1)
     df2 = df.drop(['BordePintura', 'BordePaquete', 'Cambios'], axis=1)
-    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Operacion_y': 'Operacion2', 'Operacion_x': 'Operacion1'}, axis=1)
+    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 
+                      'Operacion_y': 'Operacion2', 'Operacion_x': 'Operacion1'}, axis=1)
     df2 = df2.drop_duplicates(subset=['Orden', 'ZFER', 'ClaveModelo'], keep='first')
     sql.data_update(df2) # Carga de datos al dataframe
     return df_nullZFOR
