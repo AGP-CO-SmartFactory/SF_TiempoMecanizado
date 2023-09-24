@@ -26,4 +26,5 @@ def main(*args):
         pass
 
 if __name__ == '__main__':
-    tabla = main(sys.argv[1])
+    tabla = main('1')
+    # tabla = main(sys.argv[1])

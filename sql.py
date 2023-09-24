@@ -39,6 +39,7 @@ def data_update(df_final: pd.DataFrame):
     
     engine = sqlalchemy.create_engine(connection_url)
     connection = engine.connect()
+    connection2 = engine.connect()
     meta = sqlalchemy.MetaData()
     tabla_maestra = sqlalchemy.Table('SF_TiemposMecanizado', meta, autoload_with=engine)
     
@@ -46,6 +47,8 @@ def data_update(df_final: pd.DataFrame):
     # Limpiando todos los registros que son anteriores a la fecha inicial de la busqueda en Historian
     table_deletion = (sqlalchemy.delete(tabla_maestra))        
     connection.execute(table_deletion)
-
-    print('Cargando datos...')
-    df_final.to_sql('SF_TiemposMecanizado', connection, if_exists='append', index_label='ID')
+    connection.close()
+    print('Cargando datos...')     
+    df_final.to_sql('SF_TiemposMecanizado', connection2, if_exists='append', index_label='ID')
+    connection2.close()
+    
