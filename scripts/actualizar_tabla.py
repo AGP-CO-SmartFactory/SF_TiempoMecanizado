@@ -13,7 +13,6 @@ Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 """
 import pandas as pd
 import parameters
-import sql
 from databases import Databases
 from functions import Functions
 
@@ -38,7 +37,7 @@ def main():
                             where=f"""WHERE MATERIAL in ({cal_unique_zfer}) AND CLASE like 'Z_VD%' AND CENTRO = 'CO01' 
                             ORDER BY ZFER, POSICION ASC""", dict_name='zfer_bom')    
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], db.conn_colsap)
-    df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1)
+    df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1) #Eliminar lineas al final del texto
     # Create a query for the ZFER_bom dataframe - END
     print('Leyendo datos desde hojas de ruta de mecanizado...\n')
     # Create a query for the HR table - START
@@ -73,10 +72,10 @@ def main():
     df = pd.merge(df, df_zfer_bom, on='ZFER', how='outer').drop_duplicates()
     df['ClaveModelo'] = df['POSICION'].map(parameters.dict_clavesmodelo)
     print('Creando datos para perforaciones...\n')
-    # Agregar la característica de perforacion a los ZFER en la lista
-    df_perf = pd.read_sql(parameters.queries['query_perforacion'], db.conn_colsap)
-    df_perf['Perforacion'] = 1
-    df_perf2 = pd.merge(df, df_perf, on='ZFER', how='right').dropna().drop_duplicates()
+    # # Agregar la característica de perforacion a los ZFER en la lista
+    # df_perf = pd.read_sql(parameters.queries['query_perforacion'], db.conn_colsap)
+    # df_perf['Perforacion'] = 1
+    # df_perf2 = pd.merge(df, df_perf, on='ZFER', how='right').dropna().drop_duplicates()
     print('Eliminando valores nulos...\n')
     # Extraer los valores null en el ZFOR
     df_nullZFOR = df[pd.isnull(df['ZFOR'])] 
@@ -88,12 +87,17 @@ def main():
     df = pd.merge(df.astype({'ZFOR': int}), df_hojasruta[['ZFOR', 'ClaveModelo', 'Operacion1']].astype({'ZFOR': int}), 
                   on=['ZFOR', 'ClaveModelo'], how='left').drop_duplicates()
     df = pd.concat([df, df_nullZFOR]) # Introducir de nuevo los lites sin ZFOR para referencia
-    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0})    
+    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})    
     df = functions.definir_cantos(df)    
     df = df.apply(functions.agregar_pasadas, axis=1)
     df = df.apply(functions.tiempo_acabado, axis=1)
-    df2 = df.drop(['BordePintura', 'BordePaquete', 'Cambios', 'Area'], axis=1)
+    df = df.reset_index()
+    df2 = df.drop(['BordePintura', 'BordePaquete', 'Cambios', 'Area', 'index'], axis=1)
     df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo'}, axis=1)
     df2 = df2.drop_duplicates(subset=['Orden', 'ZFER', 'ClaveModelo'], keep='first')
-    sql.data_update(df2) # Carga de datos al dataframe
+    df2 = df2.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
+    df2 = df2.astype({'Orden': int, 'ZFER': int, 'ZFOR': int, 'CodTipoPieza': int, 'Posicion': int, 'Material': str, 'Ancho': int,
+                      'Largo': int, 'ClaveModelo': str, 'Operacion1': str, 'Operacion2': str, 'Perimetro': float, 'Tiempo': float,
+                      'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool, 'CantoP': bool})
+    df2.index = df2.index.rename('ID')
     return df2

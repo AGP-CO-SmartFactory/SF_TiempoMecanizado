@@ -48,4 +48,4 @@ def data_update(df_final: pd.DataFrame):
     connection.execute(table_deletion)
 
     print('Cargando datos...')
-    df_final.to_sql('SF_TiemposMecanizado', connection, if_exists='append', index=False)
+    df_final.to_sql('SF_TiemposMecanizado', connection, if_exists='append', index_label='ID')

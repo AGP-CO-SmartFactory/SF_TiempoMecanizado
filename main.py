@@ -13,15 +13,17 @@ Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 """
 import scripts.actualizar_tabla as at
 import sys
+import sql
 
 def main(*args):
     if args[0] == '1':
-        return at.main()
+        tabla = at.main()
+        sql.data_update(tabla)
+        return tabla
         
-    if args[0] == '2':
+    elif args[0] == '2':
         #return consulta.main()
-        pass 
+        pass
 
 if __name__ == '__main__':
-    tabla = main('1')
-    print(tabla.head(20))
+    tabla = main(sys.argv[1])
