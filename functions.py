@@ -1,4 +1,4 @@
-"""
+﻿"""
 The use of this code is exclusive for AGP Glass and cannot be sold or distributed to other companies.
 Unauthorized distribution of this code is a violation of AGP intellectual property.
 
@@ -55,7 +55,7 @@ class Functions:
                                                 and x['Operacion1'] == 'MECANIZADO' and not x['Bisel']), axis=1)        
         df['CantoC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' or x['Operacion2'] == 'SERIGRAFIA') 
                                             and not x['BrilloC'] and not x['BrilloP'] and not x['Bisel'] 
-                                            and not x['Operacion1'] == 'MECANIZADO'), axis=1)
+                                            and x['Operacion1'] == 'MECANIZADO'), axis=1)
         df['CantoP'] = df.apply(lambda x: bool((x['ClaveModelo'] != '01VEXT' and  x['Operacion2'] != 'SERIGRAFIA') 
                                             and x['Operacion1'] == 'MECANIZADO') and not x['Bisel'], axis=1)
         return df  
