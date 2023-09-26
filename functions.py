@@ -46,18 +46,18 @@ class Functions:
         df['Area'] = (df['ANCHO'] * df['LARGO'])/1000000
         df['Bisel'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) 
                                             or (x['ZFER'] in parameters.zfer_biseles and x['ClaveModelo'] == '01VEXT') 
-                                            and x['Operacion1'] == 'MECANIZADO'), axis=1)
-        df['BrilloC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' or x['Operacion2'] == 'SERIGRAFIA') 
+                                            ), axis=1)
+        df['BrilloC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT') 
                                                 and 'Brillante' in x['BordePintura'] and 'Bisel' not in x['BordePintura'] 
-                                                and x['Operacion1'] == 'MECANIZADO' and not x['Bisel']), axis=1)
+                                                and not x['Bisel']), axis=1)
         df['BrilloP'] = df.apply(lambda x: bool('Brillante' in x['BordePaquete'] 
-                                                and (x['ClaveModelo'] == '01VEXT' or x['Operacion2'] == 'SERIGRAFIA') 
-                                                and x['Operacion1'] == 'MECANIZADO' and not x['Bisel']), axis=1)        
-        df['CantoC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' or x['Operacion2'] == 'SERIGRAFIA') 
+                                                and (x['ClaveModelo'] == '01VEXT') 
+                                                and not x['Bisel']), axis=1)        
+        df['CantoC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT') 
                                             and not x['BrilloC'] and not x['BrilloP'] and not x['Bisel'] 
-                                            and x['Operacion1'] == 'MECANIZADO'), axis=1)
-        df['CantoP'] = df.apply(lambda x: bool((x['ClaveModelo'] != '01VEXT' and  x['Operacion2'] != 'SERIGRAFIA') 
-                                            and x['Operacion1'] == 'MECANIZADO') and not x['Bisel'], axis=1)
+                                            ), axis=1)
+        df['CantoP'] = df.apply(lambda x: bool((x['ClaveModelo'] != '01VEXT') 
+                                            ) and not x['Bisel'], axis=1)
         return df  
     
     def tiempo_acabado(self, x):
@@ -66,16 +66,19 @@ class Functions:
         del vidrio
         '''
         avance = self.df_avances[self.df_avances['Referencia'] == x['CLASE']].copy()
+        if not len(avance):
+            print(f"{x['ZFER']} - {x['CLASE']}")
+            return x
         tiempo = 0
         minor_count = [x['BrilloC'], x['BrilloP'], x['Bisel'], x['CantoC'], x['CantoP']].count(True)
         if x['Area'] < 0.023:
-            tiempo += round((x['Perimetro']*minor_count)/avance['AvanceArea0018'])
+            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0018']).values[0], 2)
         elif x['Area'] < 0.031 and x['Area'] >= 0.023:
-            tiempo += round((x['Perimetro']*minor_count)/avance['AvanceArea0023'])
+            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0023']).values[0], 2)
         elif x['Area'] < 0.040 and x['Area'] >= 0.031:
-            tiempo += round((x['Perimetro']*minor_count)/avance['AvanceArea0031'])
+            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0031']).values[0], 2)
         elif x['Area'] < 0.06:
-            tiempo += round((x['Perimetro']*minor_count)/avance['AvanceArea0040'])
+            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0040']).values[0], 2)
         if x['BrilloC']:
             tiempo += round((x['Perimetro']/avance['AvanceBrilloC']).values[0], 2)
         if x['BrilloP']:
@@ -87,7 +90,6 @@ class Functions:
         if x['CantoP']:
             tiempo += round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
         if minor_count:
-            x['Operacion1'] = 'MECANIZADO'
             x['Tiempo'] = tiempo + 3 + x['Cambios']*0.25
         return x
 

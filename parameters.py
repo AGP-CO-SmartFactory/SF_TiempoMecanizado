@@ -27,14 +27,31 @@ conexiones = {'SERING': os.environ.get('SERING'),
     'SERSF': os.environ.get('SERSF'),
     'DATSF': os.environ.get('DATSF'),
     'UIDSF': os.environ.get('UIDSF'),
-    'PWDSF': os.environ.get('PWDSF')}
+    'PWDSF': os.environ.get('PWDSF'),
+    'SERCO': os.environ.get('SERCO'),
+    'DATCO': os.environ.get('DATCO'),
+    'UIDCO': os.environ.get('UIDCO'),
+    'PWDCO': os.environ.get('PWDCO'),
+    'SERGN':os.environ.get('SERGN'),
+    'DATGN':os.environ.get('DATGN'),
+    'UIDGN':os.environ.get('UIDGN'),
+    'PWDGN':os.environ.get('PWDGN')}
 
 queries = {'query_calendario': "SELECT CodTipoPieza, CAST(Orden as int) Orden, CAST(ZFER as int) as ZFER, BordePintura, BordePaquete FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' AND Puestodetrabajo not in ('Ingenieria') AND Orden > 0 AND Orden < 99999999",
            'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC",
            'query_cajas': """SELECT MATERIAL as ZFER FROM ODATA_ZFER_CLASS_001 WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS' 
                                AND ATWRT like '%01%' AND CENTRO = 'CO01'""", #01 son cajas, 02 son chaflanes y 03 son perforaciones
            'query_perforacion': """SELECT MATERIAL as ZFER FROM ODATA_ZFER_CLASS_001 WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS' 
-                            AND ATWRT like '%03%' AND CENTRO = 'CO01'"""
+                            AND ATWRT like '%03%' AND CENTRO = 'CO01'""",
+           'query_acabados': """WITH BPNID as (SELECT EdgePaintID, EdgePaintName_ES as BordePintura FROM Seed_Web_GenesisSap_SGlass.MatEdgePaints),
+                             	 BPAID as (SELECT BlockEdgeID, BlockEdgeName_ES as BordePaquete FROM Seed_Web_GenesisSap_SGlass.MatBlockEdges)
+                                 SELECT DISTINCT SpecID as ZFER, ENG_GeometricDiffs, ENG_BehaviorDiffs, BordePintura, BordePaquete
+                                 FROM Seed_Web_GenesisSap_SGlass.SalesOrderDetails SOD
+                                 	inner join BPNID on SOD.EdgePaintID = BPNID.EdgePaintID
+                                 	inner join BPAID on SOD.EdgePacketID = BPAID.BlockEdgeID
+                                 WHERE SpecID like '7%'""",
+            'zfer_head': """SELECT DISTINCT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD with (nolock)
+                            WHERE STATUS <> 'ZZ'"""
     }
 
 def create_query(query, dict_name, where=None):

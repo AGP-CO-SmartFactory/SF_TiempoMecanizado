@@ -12,6 +12,7 @@ violation of AGP intellectual property.
 Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 """
 import scripts.actualizar_tabla as at
+import scripts.calcular_zfer as cz
 import sys
 import sql
 
@@ -20,11 +21,12 @@ def main(*args):
         tabla = at.main()
         sql.data_update(tabla)
         return tabla
-        
+
     elif args[0] == '2':
-        #return consulta.main()
-        pass
+        tabla = cz.main()
+        # sql.zfer_update(tabla)
+        return tabla
 
 if __name__ == '__main__':
-    tabla = main('1')
+    tabla = main('2')
     # tabla = main(sys.argv[1])
