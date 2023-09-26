@@ -14,17 +14,20 @@ Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 import scripts.actualizar_tabla as at
 import scripts.calcular_zfer as cz
 import sys
-import sql
+from sql import Loader
 
 def main(*args):
     if args[0] == '1':
+        loader = Loader('SF_TiemposMecanizado')
         tabla = at.main()
-        sql.data_update(tabla)
+        loader.erase_table()
+        loader.data_update(tabla)
         return tabla
 
     elif args[0] == '2':
+        loader = Loader('SF_TiemposMecanizado_ZFER')
         tabla = cz.main()
-        # sql.zfer_update(tabla)
+        # loader.data_update(tabla)
         return tabla
 
 if __name__ == '__main__':

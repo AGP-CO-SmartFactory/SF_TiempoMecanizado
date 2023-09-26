@@ -6,83 +6,56 @@ from dotenv import load_dotenv
 
 # Variables de entorno del código
 load_dotenv('C:\envs\zferbp_envar.env')
-SERVER = os.getenv('SERSF')
-UID = os.getenv('UIDSF')
-PWD = os.getenv('PWDSF')
-DB = os.getenv('DATSF')
-DRIVER = 'ODBC Driver 18 for SQL Server'
+class Loader:
+    def __init__(self, tabla):
+        SERVER = os.getenv('SERSF')
+        UID = os.getenv('UIDSF')
+        PWD = os.getenv('PWDSF')
+        DB = os.getenv('DATSF')
+        DRIVER = 'ODBC Driver 18 for SQL Server'
+        connection_url = URL.create("mssql+pyodbc", username=UID, password=PWD,
+            host=SERVER, database=DB, query={"driver": DRIVER, "TrustServerCertificate": "yes",})
+        self.engine = sqlalchemy.create_engine(connection_url)
+        self.connection = self.engine.connect()
+        self.meta = sqlalchemy.MetaData()
+        self.tabla_maestra = sqlalchemy.Table(tabla, self.meta, autoload_with=self.engine)
 
-def data_update(df_final: pd.DataFrame):
-    """
-    Parameters
-    ----------
-    fi : str
-        Fecha inicial del periodo a buscar en historian.
-    fia: str
-        Fecha inicial para el borrado de alertas
-    df_final : pd.DataFrame
-        Dataframe con la información más reciente para actualizar SQL
-    """
-    # Creating the connection to the SQL server
-    print('Actualizando la información a la base de datos...')
-    
-    connection_url = URL.create(
-        "mssql+pyodbc",
-        username=UID,
-        password=PWD,
-        host=SERVER,
-        database=DB,
-        query={
-            "driver": DRIVER,
-            "TrustServerCertificate": "yes",})
-    
-    
-    engine = sqlalchemy.create_engine(connection_url)
-    connection = engine.connect()
-    connection2 = engine.connect()
-    meta = sqlalchemy.MetaData()
-    tabla_maestra = sqlalchemy.Table('SF_TiemposMecanizado', meta, autoload_with=engine)
-    
-    print('Limpiando tabla...')
-    # Limpiando todos los registros que son anteriores a la fecha inicial de la busqueda en Historian
-    table_deletion = (sqlalchemy.delete(tabla_maestra))        
-    connection.execute(table_deletion)
-    connection.close()
+    def erase_table(self):
+        print('Limpiando tabla...')
+        # Limpiando todos los registros que son anteriores a la fecha inicial de la busqueda en Historian
+        table_deletion = (sqlalchemy.delete(self.tabla_maestra))
+        self.connection.execute(table_deletion)
 
-    print('Cargando datos...')     
-    df_final.to_sql('SF_TiemposMecanizado', connection2, if_exists='append', index_label='ID')
-    connection2.close()
+    def data_update(self, df_final: pd.DataFrame):
+        """
+        Parameters
+        ----------
+        fi : str
+            Fecha inicial del periodo a buscar en historian.
+        fia: str
+            Fecha inicial para el borrado de alertas
+        df_final : pd.DataFrame
+            Dataframe con la información más reciente para actualizar SQL
+        """
+        # Creating the connection to the SQL server   
+        print('Cargando datos...')    
+        df_final.to_sql('SF_TiemposMecanizado', self.connection, if_exists='append', index_label='ID')
+        self.connection.close()
+        self.engine.dispose()
 
-def zfer_update(df_final: pd.DataFrame):
-    """
-    Parameters
-    ----------
-    fi : str
-        Fecha inicial del periodo a buscar en historian.
-    fia: str
-        Fecha inicial para el borrado de alertas
-    df_final : pd.DataFrame
-        Dataframe con la información más reciente para actualizar SQL
-    """
-    # Creating the connection to the SQL server
-    print('Actualizando la información a la base de datos...')
-    
-    connection_url = URL.create(
-        "mssql+pyodbc",
-        username=UID,
-        password=PWD,
-        host=SERVER,
-        database=DB,
-        query={
-            "driver": DRIVER,
-            "TrustServerCertificate": "yes",})
-    
-    engine = sqlalchemy.create_engine(connection_url)
-    connection = engine.connect()
-    connection2 = engine.connect()
-    meta = sqlalchemy.MetaData()
-    tabla_maestra = sqlalchemy.Table('SF_TiemposMecanizado_ZFER', meta, autoload_with=engine)
-
-    print('Cargando datos...')     
-    df_final.to_sql('SF_TiemposMecanizado_ZFER', connection2, if_exists='append', index_label='ID')
-    connection2.close()
+    def zfer_update(self, df_final: pd.DataFrame):
+        """
+        Parameters
+        ----------
+        fi : str
+            Fecha inicial del periodo a buscar en historian.
+        fia: str
+            Fecha inicial para el borrado de alertas
+        df_final : pd.DataFrame
+            Dataframe con la información más reciente para actualizar SQL
+        """
+        # Creating the connection to the SQL server
+        print('Cargando datos...')     
+        df_final.to_sql('SF_TiemposMecanizado_ZFER', self.connection, if_exists='append', index_label='ID')
+        self.connection.close()
+        self.engine.dispose()
