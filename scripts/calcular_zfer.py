@@ -43,11 +43,11 @@ def main():
     df = df.apply(functions.agregar_pasadas, axis=1)
     df = df.apply(functions.tiempo_acabado, axis=1)
     df = df.reset_index()
-    df2 = df.drop(['Cambios', 'Area', 'index', 'Posicion', 'CantoP'], axis=1)
-    df2 = df2.rename({'POSICION': 'Posicion', 'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Tiempo': 'TiempoMecanizado'}, axis=1)
+    df2 = df.drop(['Cambios', 'Area', 'index', 'POSICION', 'CantoP'], axis=1)
+    df2 = df2.rename({'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Tiempo': 'TiempoMecanizado'}, axis=1)
     df2 = df2.drop_duplicates(subset=['ZFER', 'ClaveModelo'], keep='first')
     df2 = df2.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
-    df2 = df2.astype({'ZFER': int, 'ZFOR': int, 'Posicion': str, 'Material': str, 'Ancho': str,
+    df2 = df2.astype({'ZFER': int, 'ZFOR': int, 'Material': str, 'Ancho': str,
                       'Largo': str, 'ClaveModelo': str, 'Perimetro': str, 'TiempoMecanizado': float,
                       'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool, 'CantoP': bool})
     df2 = df2.rename({'ENG_BehaviorDiffs': 'BehaviorDiffs', 'ENG_GeometricDiffs': 'GeometricDiffs'}, axis=1)
