@@ -49,7 +49,7 @@ def main():
     df2 = df2.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
     df2 = df2.astype({'ZFER': int, 'ZFOR': int, 'Material': str, 'Ancho': str,
                       'Largo': str, 'ClaveModelo': str, 'Perimetro': str, 'TiempoMecanizado': float,
-                      'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool, 'CantoP': bool})
+                      'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool})
     df2 = df2.rename({'ENG_BehaviorDiffs': 'BehaviorDiffs', 'ENG_GeometricDiffs': 'GeometricDiffs'}, axis=1)
     df2.index = df2.index.rename('ID')
     return df2
