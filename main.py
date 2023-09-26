@@ -12,12 +12,14 @@ violation of AGP intellectual property.
 Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 """
 import scripts.actualizar_tabla as at
+import scripts.calcular_zfer as cz
 import sys
 
 def main(*args):
     if args[0] == '1':
         return at.main()
         
+<<<<<<< Updated upstream
     if args[0] == '2':
         #return consulta.main()
         pass 
@@ -25,3 +27,13 @@ def main(*args):
 if __name__ == '__main__':
     tabla = main('1')
     print(tabla.head(20))
+=======
+    elif args[0] == '2':
+        tabla = cz.main()
+        # sql.zfer_update(tabla)
+        return tabla
+
+if __name__ == '__main__':
+    tabla = main('2')
+    # tabla = main(sys.argv[1])
+>>>>>>> Stashed changes

@@ -46,6 +46,48 @@ def data_update(df_final: pd.DataFrame):
     # Limpiando todos los registros que son anteriores a la fecha inicial de la busqueda en Historian
     table_deletion = (sqlalchemy.delete(tabla_maestra))        
     connection.execute(table_deletion)
+<<<<<<< Updated upstream
 
     print('Cargando datos...')
     df_final.to_sql('SF_TiemposMecanizado', connection, if_exists='append', index=False)
+=======
+    connection.close()
+    print('Cargando datos...')     
+    df_final.to_sql('SF_TiemposMecanizado', connection2, if_exists='append', index_label='ID')
+    connection2.close()
+
+def zfer_update(df_final: pd.DataFrame):
+    """
+    Parameters
+    ----------
+    fi : str
+        Fecha inicial del periodo a buscar en historian.
+    fia: str
+        Fecha inicial para el borrado de alertas
+    df_final : pd.DataFrame
+        Dataframe con la información más reciente para actualizar SQL
+    """
+    # Creating the connection to the SQL server
+    print('Actualizando la información a la base de datos...')
+    
+    connection_url = URL.create(
+        "mssql+pyodbc",
+        username=UID,
+        password=PWD,
+        host=SERVER,
+        database=DB,
+        query={
+            "driver": DRIVER,
+            "TrustServerCertificate": "yes",})
+    
+    engine = sqlalchemy.create_engine(connection_url)
+    connection = engine.connect()
+    connection2 = engine.connect()
+    meta = sqlalchemy.MetaData()
+    tabla_maestra = sqlalchemy.Table('SF_TiemposMecanizado_ZFER', meta, autoload_with=engine)
+
+    print('Cargando datos...')     
+    df_final.to_sql('SF_TiemposMecanizado_ZFER', connection2, if_exists='append', index_label='ID')
+    connection2.close()
+    
+>>>>>>> Stashed changes
