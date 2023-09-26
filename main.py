@@ -13,6 +13,7 @@ Author: Juan Pablo Rodriguez Garcia (jpgarcia@agpglass.com)
 """
 import scripts.actualizar_tabla as at
 import scripts.calcular_zfer as cz
+import scripts.actualizar_zfer as az
 import sys
 from sql import Loader
 
@@ -26,10 +27,17 @@ def main(*args):
 
     elif args[0] == '2':
         loader = Loader('SF_TiemposMecanizado_ZFER')
+        loader.erase_table()
         tabla = cz.main()
-        # loader.data_update(tabla)
+        # loader.zfer_create(tabla)
+        return tabla
+    
+    elif args[0] == '3':
+        loader = Loader('SF_TiemposMecanizado_ZFER')
+        tabla = az.main()
+        loader.update_tablebyrow(tabla)
         return tabla
 
 if __name__ == '__main__':
-    tabla = main('1')
+    tabla = main('3')
     # tabla = main(sys.argv[1])

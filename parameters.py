@@ -37,7 +37,12 @@ conexiones = {'SERING': os.environ.get('SERING'),
     'UIDGN':os.environ.get('UIDGN'),
     'PWDGN':os.environ.get('PWDGN')}
 
-queries = {'query_calendario': "SELECT CodTipoPieza, CAST(Orden as int) Orden, CAST(ZFER as int) as ZFER FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' AND Puestodetrabajo not in ('Ingenieria') AND Orden > 0 AND Orden < 99999999",
+queries = {'query_calendario': """SELECT CodTipoPieza, CAST(Orden as int) Orden, CAST(ZFER as int) as ZFER 
+                                   FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' 
+                                   AND Puestodetrabajo not in ('Ingenieria') AND Orden > 0 AND Orden < 99999999""",
+           'query_cal_acabados': """SELECT CAST(ZFER as int) as ZFER, BordePintura, BordePaquete
+                                  FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' 
+                                  AND ZFER like '7%' ORDER BY Orden DESC""",
            'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC",
            'query_cajas': """SELECT MATERIAL as ZFER FROM ODATA_ZFER_CLASS_001 WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS' 
                                AND ATWRT like '%01%' AND CENTRO = 'CO01'""", #01 son cajas, 02 son chaflanes y 03 son perforaciones
@@ -51,8 +56,7 @@ queries = {'query_calendario': "SELECT CodTipoPieza, CAST(Orden as int) Orden, C
                                  	inner join BPAID on SOD.EdgePacketID = BPAID.BlockEdgeID
                                  WHERE SpecID like '7%'""",
             'zfer_head': """SELECT DISTINCT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD with (nolock)
-                            WHERE STATUS = 'ZZ'"""
-    }
+                            WHERE STATUS <> 'ZZ'"""}
 
 def create_query(query, dict_name, where=None):
     template = query
