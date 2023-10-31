@@ -30,29 +30,26 @@ def main():
     # Create a query for the ZFER_HEAD dataframe - END
     print('Leyendo datos desde hojas de ruta de mecanizado...\n')
     # Create a query for the HR table - START
-    parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_MECANIZADO FROM ODATA_HR_CONSULTA 
-                            with (nolock) WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''),
-                            zfor as (SELECT MATNR as ZFOR, PLNNR as HojaRuta FROM ODATA_HR_MAPL O 
-                            with (nolock) WHERE WERKS='CO01' and MATNR in ({sql_unique_zfor}) GROUP BY MATNR, PLNNR)
-                        SELECT ZFOR, TXT_MECANIZADO as ClaveModelo, MAX(HojaRuta) as HojaRuta FROM HR with (nolock)
-                        inner join zfor on HR.ID_HRUTA = zfor.HojaRuta GROUP BY ZFOR, TXT_MECANIZADO""", dict_name='hojasruta')    
-    df_hojasruta = pd.read_sql(parameters.queries['hojasruta'], db.conns['conn_producc'])
+    parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE MATERIAL like '5%' AND MATERIAL in ({sql_unique_zfor}))
+                            SELECT hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL as ZFOR FROM ODATA_HR_CONSULTA hr
+                                inner join a on hr.ID_HRUTA = a.ID_HRUTA
+                            WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
+                            GROUP BY hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL""", dict_name='hojasruta')    
+    df_hojasruta = pd.read_sql(parameters.queries['hojasruta'], db.conns['conn_colsap'])
     df_hojasruta['Operacion1'] = 'MECANIZADO'
-    df_hojasruta['ClaveModelo'] = df_hojasruta['ClaveModelo'].str.split(',')
+    df_hojasruta['ClaveModelo'] = df_hojasruta['TXT_MECANIZADO'].str.split(',')
     df_hojasruta = df_hojasruta.explode('ClaveModelo')
     # Create a query for the HR table - END
     print('Leyendo datos desde hojas de ruta de serigrafía...\n')
     # Create a query for the HR table to return the windows with black band - START
-    parameters.create_query(query=f"""WITH HR as (SELECT ID_HRUTA, TXT_SERIGRAFIA FROM ODATA_HR_CONSULTA 
-                            with (nolock) WHERE TXT_SERIGRAFIA is not null and TXT_SERIGRAFIA <> ''),
-                            zfor as (SELECT MATNR as ZFOR, PLNNR as HojaRuta FROM ODATA_HR_MAPL O 
-                            with (nolock) WHERE WERKS='CO01' and MATNR in ({sql_unique_zfor}) GROUP BY MATNR, PLNNR)
-                        SELECT ZFOR, TXT_SERIGRAFIA as ClaveModelo, MAX(HojaRuta) as HojaRuta FROM HR with (nolock)
-                        inner join zfor on HR.ID_HRUTA = zfor.HojaRuta GROUP BY ZFOR, TXT_SERIGRAFIA
-                        """, dict_name='hojasruta_serigrafia')
-    df_pinturas = pd.read_sql(parameters.queries['hojasruta_serigrafia'], db.conns['conn_producc'])
-    df_pinturas['Operacion2'] = 'SERIGRAFIA'
-    df_pinturas['ClaveModelo'] = df_pinturas['ClaveModelo'].str.split(',')
+    parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE MATERIAL like '5%' AND MATERIAL in ({sql_unique_zfor}))
+                            SELECT hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL as ZFOR FROM ODATA_HR_CONSULTA hr
+                                inner join a on hr.ID_HRUTA = a.ID_HRUTA
+                            WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
+                            GROUP BY hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL""", dict_name='hojasruta_serigrafia')
+    df_pinturas = pd.read_sql(parameters.queries['hojasruta_serigrafia'], db.conns['conn_colsap'])
+    df_pinturas['Operacion2'] = 'VITRIFICADO'
+    df_pinturas['ClaveModelo'] = df_pinturas['TXT_VITRIFICADO'].str.split(',')
     df_pinturas = df_pinturas.explode('ClaveModelo')
     # Create a query for the HR table to return the windows with black band - END
     parameters.create_query(query='SELECT * FROM SF_TiemposMecanizado_ZFER', dict_name='tiempos_cnc', 
