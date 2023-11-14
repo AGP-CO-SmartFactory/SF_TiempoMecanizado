@@ -18,19 +18,19 @@ from databases import Databases
 def main():
     print('Inicializando programa...\n')
     db = Databases()
-    df_base = pd.read_sql(parameters.queries['query_calendario'], db.conns['conn_calenda'])
+    df_base = pd.read_sql(parameters.queries['query_calendario'], db.conns['conn_calenda']).astype({'Orden': int, 'ZFER': int})
+    unique_order = list(df_base['Orden'].unique())
+    cal_unique_order = str(unique_order)[1:-1]
     unique_zfer = list(df_base['ZFER'].unique())
     cal_unique_zfer = str(unique_zfer)[1:-1] # This ZFER list filter all of the queries from now on    
     # Create a query for the ZFER_HEAD dataframe - START
     parameters.create_query(query="SELECT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD",
                             where=f"WHERE MATERIAL in ({cal_unique_zfer})", dict_name='zfer_head')    
     df_zfer_head = pd.read_sql(parameters.queries['zfer_head'], db.conns['conn_colsap']).drop_duplicates('ZFER', keep='first')
-    unique_zfor = list(df_zfer_head['ZFOR'].dropna().unique())
-    sql_unique_zfor = str(unique_zfor)[1:-1]
     # Create a query for the ZFER_HEAD dataframe - END
     print('Leyendo datos desde hojas de ruta de mecanizado...\n')
     # Create a query for the HR table - START
-    parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE MATERIAL like '5%' AND MATERIAL in ({sql_unique_zfor}))
+    parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE ORDEN in ({cal_unique_order}))
                             SELECT hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL as ZFOR FROM ODATA_HR_CONSULTA hr
                                 inner join a on hr.ID_HRUTA = a.ID_HRUTA
                             WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
@@ -42,7 +42,7 @@ def main():
     # Create a query for the HR table - END
     print('Leyendo datos desde hojas de ruta de serigrafía...\n')
     # Create a query for the HR table to return the windows with black band - START
-    parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE MATERIAL like '5%' AND MATERIAL in ({sql_unique_zfor}))
+    parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE ORDEN in ({cal_unique_order}))
                             SELECT hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL as ZFOR FROM ODATA_HR_CONSULTA hr
                                 inner join a on hr.ID_HRUTA = a.ID_HRUTA
                             WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
@@ -59,7 +59,7 @@ def main():
     print('Unificando tablas...\n')
     # Merging the base dataframe into one
     df = pd.merge(df_base, df_zfer_head, on='ZFER', how='outer')
-    df = pd.merge(df, df_tiemposcnc, on='ZFER', how='left')
+    df = pd.merge(df, df_tiemposcnc, on='ZFER', how='left') ## ESTA ESTÁ METIENDO LOS MATERIALES
 
     # Extraer los valores null en el ZFOR
     df_nullZFOR = df[pd.isnull(df['ZFOR'])] 

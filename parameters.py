@@ -37,9 +37,9 @@ conexiones = {'SERING': os.environ.get('SERING'),
     'UIDGN':os.environ.get('UIDGN'),
     'PWDGN':os.environ.get('PWDGN')}
 
-queries = {'query_calendario': """SELECT CodTipoPieza, CAST(Orden as int) Orden, CAST(ZFER as int) as ZFER 
+queries = {'query_calendario': """SELECT CodTipoPieza, Orden, ZFER 
                                    FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' 
-                                   AND Puestodetrabajo not in ('Ingenieria') AND Orden > 0 AND Orden < 99999999""",
+                                   AND Puestodetrabajo not in ('Ingenieria') AND Orden > 0""",
            'query_cal_acabados': """SELECT CAST(ZFER as int) as ZFER, BordePintura, BordePaquete
                                   FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' 
                                   AND ZFER like '7%' ORDER BY Orden DESC""",
@@ -55,8 +55,7 @@ queries = {'query_calendario': """SELECT CodTipoPieza, CAST(Orden as int) Orden,
                                  	inner join BPNID on SOD.EdgePaintID = BPNID.EdgePaintID
                                  	inner join BPAID on SOD.EdgePacketID = BPAID.BlockEdgeID
                                  WHERE SpecID like '7%'""",
-            'zfer_head': """SELECT DISTINCT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD with (nolock)
-                            WHERE STATUS <> 'ZZ'"""}
+            'zfer_head': """SELECT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD with (nolock) WHERE STATUS is null"""}
 
 def create_query(query, dict_name, where=None):
     template = query

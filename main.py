@@ -21,15 +21,15 @@ def main(*args):
     if args[0] == '1':
         loader = Loader('SF_TiemposMecanizado')
         tabla = at.main()
-        loader.erase_table()
-        loader.data_update(tabla)
+        loader.borrar_datos_antiguos()
+        loader.cargar_datos(tabla)
         return tabla
 
     elif args[0] == '2':
         loader = Loader('SF_TiemposMecanizado_ZFER')
-        loader.erase_table()
+        loader.borrar_datos_antiguos()
         tabla = cz.main()
-        # loader.zfer_create(tabla)
+        loader.cargar_datos(tabla)
         return tabla
     
     elif args[0] == '3':

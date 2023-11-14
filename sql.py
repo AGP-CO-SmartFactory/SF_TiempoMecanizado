@@ -1,73 +1,63 @@
 ﻿import pandas as pd
 import sqlalchemy 
 from sqlalchemy.engine import URL
-import os
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
 # Variables de entorno del código
-load_dotenv('C:\envs\zferbp_envar.env')
 class Loader:
     def __init__(self, tabla):
-        SERVER = os.getenv('SERSF')
-        UID = os.getenv('UIDSF')
-        PWD = os.getenv('PWDSF')
-        DB = os.getenv('DATSF')
+        self.basetable = tabla
+        params_dict = dotenv_values('C:\envs\zferbp_envar.env')
+        SERVER = params_dict['SERSF']
+        UID = params_dict['UIDSF']
+        PWD = params_dict['PWDSF']
+        DB = params_dict['DATSF']
         DRIVER = 'ODBC Driver 18 for SQL Server'
         connection_url = URL.create("mssql+pyodbc", username=UID, password=PWD,
             host=SERVER, database=DB, query={"driver": DRIVER, "TrustServerCertificate": "yes",})
         self.engine = sqlalchemy.create_engine(connection_url)
         self.connection = self.engine.connect()
         self.meta = sqlalchemy.MetaData()
-        self.tabla_maestra = sqlalchemy.Table(tabla, self.meta, autoload_with=self.engine)
 
-    def erase_table(self):
-        print('Limpiando tabla...')
-        # Limpiando todos los registros que son anteriores a la fecha inicial de la busqueda en Historian
-        table_deletion = (sqlalchemy.delete(self.tabla_maestra))
-        self.connection.execute(table_deletion)
+    def borrar_datos_antiguos(self):
+        '''
+        Borra los datos almacenados que sean menores a una fecha límite inicial
+
+        Parameters
+        ----------
+        fecha_limite : datetime64
+            Fecha en la cuál todo lo que se encuentre atrás de esta se borra.
+        '''
+        print('Borrando datos antiguos')
+        tabla_maquina = sqlalchemy.Table(self.basetable, self.meta, autoload_with=self.engine)
+        stmt = sqlalchemy.delete(tabla_maquina)
+        self.connection.execute(stmt)
+        self.connection.commit() 
     
     def update_row(self, row):
-        table_update = (sqlalchemy.update(self.tabla_maestra)
-                        .where(self.tabla_maestra.c.ID == int(row['ID']))
+        tabla_maquina = sqlalchemy.Table(self.basetable, self.meta, autoload_with=self.engine)
+        table_update = (sqlalchemy.update(tabla_maquina)
+                        .where(tabla_maquina.c.ID == int(row['ID']))
                         .values(BordePaquete = row['BordePaquete'], BordePintura = row['BordePintura'],
                                 TiempoMecanizado = row['TiempoMecanizado'], Bisel = row['Bisel'],
                                 BrilloC = row['BrilloC'], BrilloP = row['BrilloP'], CantoC = row['CantoC']))
         self.connection.execute(table_update)
                
-    def data_update(self, df_final: pd.DataFrame):
-        """
+    def cargar_datos(self, df, basetable=None):
+        '''
+        Se encarga de cargar los datos a la tabla base de la máquina
+    
         Parameters
         ----------
-        fi : str
-            Fecha inicial del periodo a buscar en historian.
-        fia: str
-            Fecha inicial para el borrado de alertas
-        df_final : pd.DataFrame
-            Dataframe con la información más reciente para actualizar SQL
-        """
-        # Creating the connection to the SQL server   
-        print('Cargando datos...')    
-        df_final.to_sql('SF_TiemposMecanizado', self.connection, if_exists='append', index_label='ID')
-        self.connection.close()
-        self.engine.dispose()
-
-    def zfer_create(self, df_final: pd.DataFrame, dispose=True):
-        """
-        Parameters
-        ----------
-        fi : str
-            Fecha inicial del periodo a buscar en historian.
-        fia: str
-            Fecha inicial para el borrado de alertas
-        df_final : pd.DataFrame
-            Dataframe con la información más reciente para actualizar SQL
-        """
-        # Creating the connection to the SQL server
-        print('Cargando datos...') 
-        df_final.to_sql('SF_TiemposMecanizado_ZFER', self.connection, if_exists='append', index_label='ID')
-        if dispose:
-            self.connection.close()
-            self.engine.dispose()
+        df : pd.DataFrame
+            Dataframe que contiene la información a cargar.
+    
+        '''
+        if not basetable:
+            basetable = self.basetable
+        print(f'Cargando datos a: {basetable}')
+        df.to_sql(name=basetable, con=self.connection, if_exists='append', index_label='ID')
+        self.connection.commit()        
     
     def update_tablebyrow(self, df_final):
         print('Actualizando tabla con los nuevos registros...')
@@ -82,9 +72,10 @@ class Loader:
         df_newzfers = df_newzfers.assign(ID = lambda x: range(max_id+1, max_id + len(df_newzfers) + 1))
         df_newzfers = df_newzfers.set_index('ID')
         print(f"Se tienen {len(df_newzfers)} nuevos ZFER para agregar")
-        self.zfer_create(df_newzfers, dispose=False) # Cargar los nuevos ZFER a la base de datos
+        self.cargar_datos(df_newzfers) # Cargar los nuevos ZFER a la base de datos
         df_update = df_update.dropna(subset='ID')
         df_update = df_update.fillna(0)
         for enum, row in df_update.iterrows():
             self.update_row(row)
+        self.connection.commit()
         

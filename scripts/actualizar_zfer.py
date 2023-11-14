@@ -43,6 +43,7 @@ def main():
     df = pd.merge(df, df_zfer_bom, on='ZFER', how='outer').drop_duplicates()
     df['ClaveModelo'] = df['POSICION'].map(parameters.dict_clavesmodelo)
     df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})    
+    df = df.dropna(subset=['ANCHO', 'LARGO'])
     df = functions.definir_cantos(df)    
     df = df.apply(functions.agregar_pasadas, axis=1)
     df = df.apply(functions.tiempo_acabado, axis=1)
