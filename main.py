@@ -39,5 +39,5 @@ def main(*args):
         return tabla
 
 if __name__ == '__main__':
-    tabla = main('1')
-    # tabla = main(sys.argv[1])
+    # tabla = main('1')
+    tabla = main(sys.argv[1])

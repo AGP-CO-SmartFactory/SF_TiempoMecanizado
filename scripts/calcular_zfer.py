@@ -28,7 +28,7 @@ def main():
     print('Descargando información desde ingeniería (ZFER-BOM)...\n')
     # Create a query for the ZFER_bom dataframe - START
     parameters.create_query(query="""SELECT MATERIAL as ZFER, POSICION, CLASE, CAST(DIMEN_BRUTA_1 as float) as ANCHO, 
-                            CAST(DIMEN_BRUTA_2 as float) as LARGO FROM ODATA_ZFER_BOM""",
+                            CAST(DIMEN_BRUTA_2 as float) as LARGO, CAST(CANT_PIEZAS_BRUTA as float) as AREA FROM ODATA_ZFER_BOM""",
                             where="""WHERE CLASE like 'Z_VD%' AND CENTRO = 'CO01'""", dict_name='zfer_bom')    
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], db.conns['conn_colsap'])
     df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1) #Eliminar lineas al final del texto
@@ -45,11 +45,11 @@ def main():
     df = df.apply(functions.tiempo_acabado, axis=1)
     df = df.reset_index()
     df2 = df.drop(['Cambios', 'Area', 'index', 'POSICION', 'CantoP'], axis=1)
-    df2 = df2.rename({'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Tiempo': 'TiempoMecanizado'}, axis=1)
+    df2 = df2.rename({'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'AREA': 'Area', 'Tiempo': 'TiempoMecanizado'}, axis=1)
     df2 = df2.drop_duplicates(subset=['ZFER', 'ClaveModelo'], keep='first')
     df2 = df2.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
     df2 = df2.astype({'ZFER': int, 'ZFOR': int, 'Material': str, 'Ancho': str,
-                      'Largo': str, 'ClaveModelo': str, 'Perimetro': str, 'TiempoMecanizado': float,
+                      'Largo': str, 'Area': str, 'ClaveModelo': str, 'Perimetro': str, 'TiempoMecanizado': float,
                       'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool})
     df2 = df2.rename({'ENG_BehaviorDiffs': 'BehaviorDiffs', 'ENG_GeometricDiffs': 'GeometricDiffs'}, axis=1)
     df2.index = df2.index.rename('ID')
