@@ -1,9 +1,9 @@
 
 """
-This code collects and calculates the primary characteristics for a ZFER produced 
-in AGP SGlass CO. It makes a recollection of all the critical variables in the 
-different databases that the company has and combines them into a single dataframe 
-that is to be exported to a SQL Server table. 
+This code contains the execution of 3 scripts that load SQL tables that relate
+to the characteristics of production orders for laminated glass per lite.
+This means that it produces a table that contains the machining time based on
+the glass dimensions and its geometric differentials. 
 
 The use of this code is exclusive for AGP Glass and cannot be sold or 
 distributed to other companies. Unauthorized distribution of this code is a 
@@ -39,5 +39,5 @@ def main(*args):
         return tabla
 
 if __name__ == '__main__':
-    # tabla = main('1')
-    tabla = main(sys.argv[1])
+    tabla = main('3')
+    # tabla = main(sys.argv[1])

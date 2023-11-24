@@ -43,7 +43,6 @@ class Functions:
         '''
         df = df_cambio.copy()
         df['Perimetro'] = (df['ANCHO']*2 + df['LARGO']*2)*(1-0.089)
-        df['Area'] = (df['ANCHO'] * df['LARGO'])/1000000
         df['Bisel'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) 
                                             or (x['ZFER'] in parameters.zfer_biseles and x['ClaveModelo'] == '01VEXT') 
                                             ), axis=1)
