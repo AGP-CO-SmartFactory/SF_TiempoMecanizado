@@ -32,7 +32,7 @@ def main():
     # Create a query for the HR table - START
     parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE ORDEN in ({cal_unique_order}))
                             SELECT hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL as ZFER FROM ODATA_HR_CONSULTA hr
-                                inner join a on hr.ID_HRUTA = a.ID_HRUTA
+                                inner join a on hr.ID_HRUTA = a.ID_HRUTA and hr.SUB_RUTA = a.SUB_RUTA
                             WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
                             GROUP BY hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL""", dict_name='hojasruta')    
     df_hojasruta = pd.read_sql(parameters.queries['hojasruta'], db.conns['conn_colsap'])
@@ -44,7 +44,7 @@ def main():
     # Create a query for the HR table to return the windows with black band - START
     parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE ORDEN in ({cal_unique_order}))
                             SELECT hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL as ZFER FROM ODATA_HR_CONSULTA hr
-                                inner join a on hr.ID_HRUTA = a.ID_HRUTA
+                                inner join a on hr.ID_HRUTA = a.ID_HRUTA and hr.SUB_RUTA = a.SUB_RUTA
                             WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
                             GROUP BY hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL""", dict_name='hojasruta_serigrafia')
     df_pinturas = pd.read_sql(parameters.queries['hojasruta_serigrafia'], db.conns['conn_colsap'])
