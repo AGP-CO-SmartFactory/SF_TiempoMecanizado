@@ -41,16 +41,19 @@ def main():
     df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'ENG_GeometricDiffs':'', 'PartShort':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
     df = df.dropna(subset=['ANCHO', 'LARGO'])
     df = functions.definir_cantos(df)    
-    df = df.apply(functions.agregar_pasadas, axis=1)
+    df = functions.agregar_pasadas(df)
     df = df.apply(functions.tiempo_acabado, axis=1)
     df = df.reset_index()
-    df2 = df.drop(['Cambios', 'index', 'POSICION', 'CantoP'], axis=1)
-    df2 = df2.rename({'CLASE': 'Material', 'ANCHO': 'Ancho', 'LARGO': 'Largo', 'Tiempo': 'TiempoMecanizado'}, axis=1)
+    df2 = df.drop(['BrilloP', 'AcabadoPlano', 'BrilloC', 'AcabadoC', 'BiselBrillo', 
+                   'BiselP2', 'BiselP1', 'Chaflan2', 'Chaflan1', 'Desbaste', 'POSICION', 'index'], axis=1)
+    df2 = df2.rename({'PartShort': 'Parte', 'CLASE': 'Material', 'ANCHO': 'Ancho', 
+                      'LARGO': 'Largo', 'Tiempo': 'TiempoMecanizado', 
+                      'ENG_BehaviorDiffs': 'BehaviorDiffs',
+                      'ENG_GeometricDiffs': 'GeometricDiffs',
+                      }, axis=1)
     df2 = df2.drop_duplicates(subset=['ZFER', 'ClaveModelo'], keep='first')
     df2 = df2.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
     df2 = df2.astype({'ZFER': int, 'ZFOR': int, 'Material': str, 'Ancho': str,
-                      'Largo': str, 'Area': str, 'ClaveModelo': str, 'Perimetro': str, 'TiempoMecanizado': float,
-                      'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool})
-    df2 = df2.rename({'ENG_BehaviorDiffs': 'BehaviorDiffs', 'ENG_GeometricDiffs': 'GeometricDiffs'}, axis=1)
+                      'Largo': str, 'Area': str, 'ClaveModelo': str, 'Perimetro': str, 'TiempoMecanizado': float})
     df2.index = df2.index.rename('ID')
     return df2

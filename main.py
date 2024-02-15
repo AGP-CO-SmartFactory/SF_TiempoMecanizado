@@ -38,6 +38,6 @@ def main(*args):
         loader.update_tablebyrow(tabla)
         return tabla
 
-# if __name__ == '__main__':
-#     # tabla = main('3')
-#     tabla = main(sys.argv[1])
+if __name__ == '__main__':
+    tabla = main('1')
+    # tabla = main(sys.argv[1])

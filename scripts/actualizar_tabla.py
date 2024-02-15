@@ -76,7 +76,6 @@ def main():
     df2 = df2.drop_duplicates(subset=['Orden', 'ZFER', 'ClaveModelo'], keep='first')
     df2 = df2.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'Operacion1':'', 'Operacion2':'', 'ZFOR': 0, 'TiempoMecanizado': 0})
     df2 = df2.astype({'Orden': 'int64', 'ZFER': 'int64', 'ZFOR': 'int64', 'CodTipoPieza': int, 'Material': str, 'Ancho': float,
-                      'Largo': float, 'ClaveModelo': str, 'Operacion1': str, 'Operacion2': str, 'Perimetro': float, 'Area': float, 'TiempoMecanizado': float,
-                      'BrilloC': bool, 'BrilloP': bool, 'Bisel': bool, 'CantoC': bool})
+                      'Largo': float, 'ClaveModelo': str, 'Operacion1': str, 'Operacion2': str, 'Perimetro': float, 'Area': float, 'TiempoMecanizado': float})
     df2.index = df2.index.rename('ID')
     return df2

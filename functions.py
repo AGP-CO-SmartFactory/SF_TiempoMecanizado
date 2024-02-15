@@ -10,7 +10,7 @@ class Functions:
     def __init__(self, sf_conn):
         self.df_avances = pd.read_sql(parameters.queries['query_avances'], sf_conn)
 
-    def agregar_pasadas(self, x):
+    def agregar_pasadas(self, df):
         '''
         Esta función agrega los tipos de acabado faltantes a partir del canto inicial, definiendo el número de pasadas:
             Chaflan -> 2 Desbaste plano, 2 Chaflan P1, 1 Chaflan P2
@@ -20,36 +20,14 @@ class Functions:
             CantoC -> 2 Desbaste plano, 1 acabado C
             CantoP -> 2 Desbaste plano, 1 acabado plano
         '''
-        if x['C_Chaflan']:
-            x['Desbaste'] = 2
-            x['Chaflan1'] = 2
-            x['Chaflan2'] = 1
-        elif x['C_Bisel']:
-            x['Desbaste'] = 2
-            x['BiselP1'] = 1
-            x['BiselP2'] = 1
-            x['BiselBrillo'] = 1
-        elif x['C_BrilloC']:
-            x['Desbaste'] = 2
-            x['AcabadoC'] = 1
-            x['BrilloC'] = 1
-        elif x['C_BrilloP']:
-            x['Desbaste'] = 2
-            x['AcabadoPlano'] = 1
-            x['BrilloPlano'] = 1
-        elif x['C_CantoC']:
-            x['Desbaste'] = 2
-            x['AcabadoC'] = 1
-        elif x['C_CantoP']:
-            x['Desbaste'] = 2
-            x['AcabadoPlano'] = 1
-            
-        cambios_herramienta = 0
-        for z in [x['C_Chaflan'], x['C_Bisel'], x['C_BrilloC'], x['C_BrilloP'], x['C_CantoC'], x['C_CantoP']]:
-            if z:
-                cambios_herramienta+=1
-        x['Cambios'] = cambios_herramienta
-        return x
+        df.loc[(df['C_Chaflan'] == 1), ['Desbaste', 'Chaflan1', 'Chaflan2']] = pd.DataFrame([{'Desbaste': 2, 'Chaflan1': 2, 'Chaflan2': 1}] * len(df))
+        df.loc[(df['C_Bisel'] == 1), ['Desbaste', 'BiselP1', 'BiselP2', 'BiselBrillo']] = pd.DataFrame([{'Desbaste': 2, 'BiselP1': 1, 'BiselP2': 1, 'BiselBrillo': 1}] * len(df))
+        df.loc[(df['C_BrilloC'] == 1), ['Desbaste', 'AcabadoC', 'BrilloC']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoC': 1, 'BrilloC': 1}] * len(df))
+        df.loc[(df['C_BrilloP'] == 1), ['Desbaste', 'AcabadoPlano', 'BrilloP']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoPlano': 1, 'BrilloP': 1}] * len(df))
+        df.loc[(df['C_CantoC'] == 1), ['Desbaste', 'AcabadoC']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoC': 1}] * len(df))
+        df.loc[(df['C_CantoP'] == 1), ['Desbaste', 'AcabadoPlano']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoPlano': 1}] * len(df))
+        df = df.fillna(0)
+        return df
     
     def definir_cantos(self, df_cambio):
         '''
@@ -59,39 +37,42 @@ class Functions:
         df = df_cambio.copy()
         df['Perimetro'] = (df['ANCHO']*2 + df['LARGO']*2)*(1-0.089) # Cálculo de perímetro
         df['C_Chaflan'] = 0
+        df['C_Caja'] = 0
         df['C_Bisel'] = 0
         df['C_BrilloC'] = 0
         df['C_BrilloP'] = 0
         df['C_CantoC'] = 0
         df['C_CantoP'] = 0
+        
+        # Definición de cajas
+        df.loc[df['ENG_GeometricDiffs'].str.contains('01'), 'C_Caja'] = 1
+        
         # Características para paquetes
-        # Definición de cantos planos para paquetes
+        ## Definición de cantos planos para paquetes
         df.loc[df['ClaveModelo'] != '01VEXT', 'C_CantoP'] = 1 
-        # Definición de chaflan para parabrisas (El 02VP01 es plano y el resto chaflán, la pintura es lo que diga el borde paquete)
+        ## Definición de chaflan para parabrisas (El 02VP01 es plano y el resto chaflán, la pintura es lo que diga el borde paquete)
         df.loc[(df['ENG_GeometricDiffs'].str.contains('02')) &
                (df['PartShort'] == 'PBS') &
                (df['POSICION'] != 100) &
                (df['POSICION'] != 200) &
                (df['POSICION']%2 == 0), 'C_Chaflan'] = 1
-        # Definición de chaflan para laterales (El chaflan inicia desde el 02VP01)
+        ## Definición de chaflan para laterales (El chaflan inicia desde el 02VP01)
         df.loc[(df['ENG_GeometricDiffs'].str.contains('02')) &
                (df['PartShort'].str.contains('L')) &
                (df['POSICION'] != 100) &
                (df['POSICION']%2 == 0), 'C_Chaflan'] = 1
         
         # Características para pinturas
-        # Biseles
-        df.loc[((df['POSICION'] == 100) & (df['BordePintura'].str.contains('Bisel'))) |
-               ((df['ZFER'].isin(parameters.zfer_biseles)) & (df['POSICION'] == 100)),
-                'C_Bisel'] = 1
-        # Brillo canto C
+        ## Biseles
+        df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Bisel')), 'C_Bisel'] = 1
+        ## Brillo canto C
         df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Canto C Brillante')), 'C_BrilloC'] = 1
-        # Brillo Plano
+        ## Brillo Plano
         df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Brillante')) &
                (df['C_BrilloC'] == False) & (df['C_Bisel'] == False), 'C_BrilloP'] = 1
-        # Canto C
+        ## Canto C
         df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Canto C Mate')), 'C_CantoC'] = 1
-        # Canto plano
+        ## Canto plano
         df.loc[(df['POSICION'] == 100) & (df['C_Bisel'] == False) & (df['C_BrilloC'] == False) & (df['C_BrilloP'] == False) &
                (df['C_CantoC'] == False), 'C_CantoP'] = 1
         return df
@@ -106,32 +87,52 @@ class Functions:
             print(f"{x['ZFER']} - {x['CLASE']}")
             return x
         tiempo = 0
-        minor_count = [x['BrilloC'], x['BrilloP'], x['Bisel'], x['CantoC'], x['CantoP']].count(True)
-        if x['Area'] < 0.023:
-            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0018']).values[0], 2)
-        elif x['Area'] < 0.031 and x['Area'] >= 0.023:
-            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0023']).values[0], 2)
-        elif x['Area'] < 0.040 and x['Area'] >= 0.031:
-            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0031']).values[0], 2)
-        elif x['Area'] < 0.06:
-            tiempo += round(((x['Perimetro']*minor_count)/avance['AvanceArea0040']).values[0], 2)
+        if x['Desbaste']:
+            tiempo += round((x['Perimetro']/avance['DesbastePlano']).values[0], 2)
+        if x['AcabadoC']:
+            tiempo += round(x['Perimetro']/avance['AcabadoC'].values[0], 2)
         if x['BrilloC']:
-            tiempo += round((x['Perimetro']/avance['AvanceBrilloC']).values[0], 2)
+            tiempo += round(x['Perimetro']/avance['BrilloC'].values[0], 2)
+        if x['AcabadoPlano']:
+            tiempo += round(x['Perimetro']/avance['AcabadoPlano'].values[0], 2)
         if x['BrilloP']:
-            tiempo += round((x['Perimetro']/avance['AvanceBrilloPlano']).values[0], 2)
-        if x['Bisel']:
-            tiempo += round(x['Perimetro']/avance['AvanceBisel'].values[0], 2)
-        if x['CantoC']:
-            tiempo += round(x['Perimetro']/avance['AvanceCantoC'].values[0], 2)
-        if x['CantoP']:
-            tiempo += round(x['Perimetro']/avance['AvanceCantoPlano'].values[0], 2)
-        if minor_count:
-            x['Tiempo'] = tiempo + 3 + x['Cambios']*0.25
+            tiempo += round(x['Perimetro']/avance['BrilloPlano'].values[0], 2)
+        
+        # Definición de biseles
+        if x['PartShort'] in ['PBS', 'POS']:
+            if x['BiselP1']:
+                tiempo += round(x['LARGO']/avance['BiselP1'].values[0], 2)
+            if x['BiselP2']:
+                tiempo += round(x['LARGO']/avance['BiselP2'].values[0], 2)
+            if x['BiselBrillo']:
+                tiempo += round(x['LARGO']/avance['BiselBrillo'].values[0], 2)
+        else:
+            if x['BiselP1']:
+                tiempo += round(2*x['Perimetro']/(3*avance['BiselP1']).values[0], 2)
+            if x['BiselP2']:
+                tiempo += round(2*x['Perimetro']/(3*avance['BiselP2']).values[0], 2)
+            if x['BiselBrillo']:
+                tiempo += round(2*x['Perimetro']/(3*avance['BiselBrillo']).values[0], 2)
+        
+        # Definición de chaflanes y cajas
+        if len(x['PartShort']):
+            if x['PartShort'] == 'PBS':
+                if x['Chaflan1']:
+                    tiempo += round((x['LARGO']/avance['Chaflan1']).values[0], 2)
+                if x['Chaflan2']:
+                    tiempo += round(x['LARGO']/avance['Chaflan2'].values[0], 2)
+                if x['C_Caja']:
+                    tiempo += 5       
+            elif x['PartShort'][0] == 'L':
+                if x['Chaflan1']:
+                    tiempo += round(x['Perimetro']/(3*avance['Chaflan1']).values[0], 2)
+                if x['Chaflan2']:
+                    tiempo += round(x['Perimetro']/(3*avance['Chaflan2']).values[0], 2)
+                if x['C_Caja']:
+                    tiempo += 3
+            elif x['PartShort'] == 'POS':
+                if x['C_Caja']:
+                    tiempo += 4
+            
+        x['Tiempo'] = tiempo + 3 # Corrección para el montaje de las herramientas y la pieza
         return x
-
-    def tiempo_caja(self, x):
-        '''
-        Suma al tiempo de las piezas un tiempo adicional si la pieza contiene una caja
-        en su geometría. Este tiempo se suma al mecanizado del canto del vidrio
-        '''
-        pass
