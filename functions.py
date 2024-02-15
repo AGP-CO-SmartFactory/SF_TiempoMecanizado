@@ -12,25 +12,40 @@ class Functions:
 
     def agregar_pasadas(self, x):
         '''
-        Esta función agrega los tipos de acabado faltantes a partir del canto inicial:
-            Canto C -> Se le agrega canto P.
-            Brillo -> Se le agrega canto P y canto C.
-            Bisel -> Se le agrega canto P y canto C.
+        Esta función agrega los tipos de acabado faltantes a partir del canto inicial, definiendo el número de pasadas:
+            Chaflan -> 2 Desbaste plano, 2 Chaflan P1, 1 Chaflan P2
+            Bisel -> 2 Desbaste plano, 1 Bisel P1, 1 Bisel P2, 1 Bisel Brillo
+            BrilloC -> 2 Desbaste plano, 1 acabado C, 1 Brillo
+            BrilloP -> 2 Desbaste plano, 1 acabado plano, 1 Brillo 
+            CantoC -> 2 Desbaste plano, 1 acabado C
+            CantoP -> 2 Desbaste plano, 1 acabado plano
         '''
-        if x['BrilloC']:
-            x['CantoC'] = True
-            x['CantoP'] = True
-        elif x['Bisel']:
-            x['CantoC'] = True
-            x['CantoP'] = True
-            x['BrilloC'] = True
-        elif x['BrilloP']:
-            x['CantoC'] = True
-            x['CantoP'] = True
-        elif x['CantoC']:
-            x['CantoP'] = True
+        if x['C_Chaflan']:
+            x['Desbaste'] = 2
+            x['Chaflan1'] = 2
+            x['Chaflan2'] = 1
+        elif x['C_Bisel']:
+            x['Desbaste'] = 2
+            x['BiselP1'] = 1
+            x['BiselP2'] = 1
+            x['BiselBrillo'] = 1
+        elif x['C_BrilloC']:
+            x['Desbaste'] = 2
+            x['AcabadoC'] = 1
+            x['BrilloC'] = 1
+        elif x['C_BrilloP']:
+            x['Desbaste'] = 2
+            x['AcabadoPlano'] = 1
+            x['BrilloPlano'] = 1
+        elif x['C_CantoC']:
+            x['Desbaste'] = 2
+            x['AcabadoC'] = 1
+        elif x['C_CantoP']:
+            x['Desbaste'] = 2
+            x['AcabadoPlano'] = 1
+            
         cambios_herramienta = 0
-        for z in [x['BrilloC'], x['CantoC'], x['CantoP'], x['Bisel'], x['BrilloP']]:
+        for z in [x['C_Chaflan'], x['C_Bisel'], x['C_BrilloC'], x['C_BrilloP'], x['C_CantoC'], x['C_CantoP']]:
             if z:
                 cambios_herramienta+=1
         x['Cambios'] = cambios_herramienta
@@ -42,22 +57,44 @@ class Functions:
         como un mismo dataframe
         '''
         df = df_cambio.copy()
-        df['Perimetro'] = (df['ANCHO']*2 + df['LARGO']*2)*(1-0.089)
-        df['Bisel'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT' and 'Bisel' in x['BordePintura']) 
-                                            or (x['ZFER'] in parameters.zfer_biseles and x['ClaveModelo'] == '01VEXT') 
-                                            ), axis=1)
-        df['BrilloC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT') 
-                                                and 'Brillante' in x['BordePintura'] and 'Bisel' not in x['BordePintura'] 
-                                                and not x['Bisel']), axis=1)
-        df['BrilloP'] = df.apply(lambda x: bool('Brillante' in x['BordePaquete'] 
-                                                and (x['ClaveModelo'] == '01VEXT') 
-                                                and not x['Bisel']), axis=1)        
-        df['CantoC'] = df.apply(lambda x: bool((x['ClaveModelo'] == '01VEXT') 
-                                            and not x['BrilloC'] and not x['BrilloP'] and not x['Bisel'] 
-                                            ), axis=1)
-        df['CantoP'] = df.apply(lambda x: bool((x['ClaveModelo'] != '01VEXT') 
-                                            ) and not x['Bisel'], axis=1)
-        return df  
+        df['Perimetro'] = (df['ANCHO']*2 + df['LARGO']*2)*(1-0.089) # Cálculo de perímetro
+        df['C_Chaflan'] = 0
+        df['C_Bisel'] = 0
+        df['C_BrilloC'] = 0
+        df['C_BrilloP'] = 0
+        df['C_CantoC'] = 0
+        df['C_CantoP'] = 0
+        # Características para paquetes
+        # Definición de cantos planos para paquetes
+        df.loc[df['ClaveModelo'] != '01VEXT', 'C_CantoP'] = 1 
+        # Definición de chaflan para parabrisas (El 02VP01 es plano y el resto chaflán, la pintura es lo que diga el borde paquete)
+        df.loc[(df['ENG_GeometricDiffs'].str.contains('02')) &
+               (df['PartShort'] == 'PBS') &
+               (df['POSICION'] != 100) &
+               (df['POSICION'] != 200) &
+               (df['POSICION']%2 == 0), 'C_Chaflan'] = 1
+        # Definición de chaflan para laterales (El chaflan inicia desde el 02VP01)
+        df.loc[(df['ENG_GeometricDiffs'].str.contains('02')) &
+               (df['PartShort'].str.contains('L')) &
+               (df['POSICION'] != 100) &
+               (df['POSICION']%2 == 0), 'C_Chaflan'] = 1
+        
+        # Características para pinturas
+        # Biseles
+        df.loc[((df['POSICION'] == 100) & (df['BordePintura'].str.contains('Bisel'))) |
+               ((df['ZFER'].isin(parameters.zfer_biseles)) & (df['POSICION'] == 100)),
+                'C_Bisel'] = 1
+        # Brillo canto C
+        df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Canto C Brillante')), 'C_BrilloC'] = 1
+        # Brillo Plano
+        df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Brillante')) &
+               (df['C_BrilloC'] == False) & (df['C_Bisel'] == False), 'C_BrilloP'] = 1
+        # Canto C
+        df.loc[(df['POSICION'] == 100) & (df['BordePintura'].str.contains('Canto C Mate')), 'C_CantoC'] = 1
+        # Canto plano
+        df.loc[(df['POSICION'] == 100) & (df['C_Bisel'] == False) & (df['C_BrilloC'] == False) & (df['C_BrilloP'] == False) &
+               (df['C_CantoC'] == False), 'C_CantoP'] = 1
+        return df
     
     def tiempo_acabado(self, x):
         '''

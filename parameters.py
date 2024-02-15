@@ -50,8 +50,8 @@ queries = {'query_calendario': """SELECT CodTipoPieza, Orden, ZFER
                             AND ATWRT like '%03%' AND CENTRO = 'CO01'""",
            'query_acabados': """WITH BPNID as (SELECT EdgePaintID, EdgePaintName_ES as BordePintura FROM Seed_Web_GenesisSap_SGlass.MatEdgePaints),
                              	 BPAID as (SELECT BlockEdgeID, BlockEdgeName_ES as BordePaquete FROM Seed_Web_GenesisSap_SGlass.MatBlockEdges)
-                                 SELECT DISTINCT SpecID as ZFER, ENG_GeometricDiffs, ENG_BehaviorDiffs, BordePintura, BordePaquete
-                                 FROM Seed_Web_GenesisSap_SGlass.SalesOrderDetails SOD
+                                 SELECT DISTINCT SpecID as ZFER, PartShort, ENG_GeometricDiffs, ENG_BehaviorDiffs, BordePintura, BordePaquete
+                                 FROM Seed_Web_GenesisSap_SGlass.SalesOrderDetails SOD with (nolock)
                                  	inner join BPNID on SOD.EdgePaintID = BPNID.EdgePaintID
                                  	inner join BPAID on SOD.EdgePacketID = BPAID.BlockEdgeID
                                  WHERE SpecID like '7%'""",
