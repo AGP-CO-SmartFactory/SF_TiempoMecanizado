@@ -21,6 +21,7 @@ def main():
     db = Databases()
     functions = Functions(db.conns['conn_smartfa'])
     df_base = pd.read_sql(parameters.queries['query_acabados'], db.conns['conn_genesis'])
+    df_base = df_base.drop_duplicates(subset=['ZFER'], keep='first')
     # Create a query for the ZFER_HEAD dataframe - START
     print('Descargando información desde ingeniería (ZFER-HEAD)...\n')   
     df_zfer_head = db.crear_dataframe(parameters.queries['zfer_head'], 'conn_colsap')
@@ -33,12 +34,14 @@ def main():
     df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], db.conns['conn_colsap'])
     df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1) #Eliminar lineas al final del texto
     # Create a query for the ZFER_bom dataframe - END
+    df_caracteristicas = pd.read_sql(parameters.queries['query_caracteristicas'], db.conns['conn_colsap'])
     print('Unificando tablas...\n')
     # Merging the base dataframe into one
     df = pd.merge(df_base.astype({'ZFER': int}), df_zfer_head, on='ZFER', how='outer')
     df = pd.merge(df, df_zfer_bom, on='ZFER', how='outer').drop_duplicates()
+    df = pd.merge(df, df_caracteristicas, on='ZFER', how='left')
     df['ClaveModelo'] = df['POSICION'].map(parameters.dict_clavesmodelo)
-    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'ENG_GeometricDiffs':'', 'PartShort':'', 'ZFOR': 0, 'Caja': 0, 'Tiempo': 0})
+    df = df.fillna({'BordePintura': '', 'BordePaquete': '', 'ClaveModelo':'', 'PartShort':'', 'ENG_GeometricDiffs':'', 'ZFOR': 0, 'C_Caja': 0, 'C_Chaflan': 0, 'Tiempo': 0})
     df = df.dropna(subset=['ANCHO', 'LARGO'])
     df = functions.definir_cantos(df)    
     df = functions.agregar_pasadas(df)

@@ -39,8 +39,9 @@ class Loader:
         table_update = (sqlalchemy.update(tabla_maquina)
                         .where(tabla_maquina.c.ID == int(row['ID']))
                         .values(BordePaquete = row['BordePaquete'], BordePintura = row['BordePintura'],
-                                TiempoMecanizado = row['TiempoMecanizado'], Bisel = row['Bisel'],
-                                BrilloC = row['BrilloC'], BrilloP = row['BrilloP'], CantoC = row['CantoC']))
+                                TiempoMecanizado = row['TiempoMecanizado'], C_Bisel = row['C_Bisel'],
+                                C_BrilloC = row['C_BrilloC'], C_BrilloP = row['C_BrilloP'], C_CantoC = row['C_CantoC'],
+                                C_Caja = row['C_Caja'], C_Chaflan = row['C_Chaflan']))
         self.connection.execute(table_update)
                
     def cargar_datos(self, df, basetable=None):
