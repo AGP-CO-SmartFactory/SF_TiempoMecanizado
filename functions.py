@@ -21,7 +21,7 @@ class Functions:
             CantoP -> 2 Desbaste plano, 1 acabado plano
         '''
         df.loc[(df['C_Chaflan'] == 1), ['Desbaste', 'Chaflan1', 'Chaflan2']] = pd.DataFrame([{'Desbaste': 2, 'Chaflan1': 2, 'Chaflan2': 1}] * len(df))
-        df.loc[(df['C_Bisel'] == 1), ['Desbaste', 'BiselP1', 'BiselP2', 'BiselBrillo']] = pd.DataFrame([{'Desbaste': 2, 'BiselP1': 1, 'BiselP2': 1, 'BiselBrillo': 1}] * len(df))
+        df.loc[(df['C_Bisel'] == 1), ['Desbaste', 'BiselP1', 'BiselP2', 'BiselBrillo']] = pd.DataFrame([{'Desbaste': 2, 'BiselP1': 1, 'BiselP2': 2, 'BiselBrillo': 1}] * len(df))
         df.loc[(df['C_BrilloC'] == 1), ['Desbaste', 'AcabadoC', 'BrilloC']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoC': 1, 'BrilloC': 1}] * len(df))
         df.loc[(df['C_BrilloP'] == 1), ['Desbaste', 'AcabadoPlano', 'BrilloP']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoPlano': 1, 'BrilloP': 1}] * len(df))
         df.loc[(df['C_CantoC'] == 1), ['Desbaste', 'AcabadoC']] = pd.DataFrame([{'Desbaste': 2, 'AcabadoC': 1}] * len(df))
