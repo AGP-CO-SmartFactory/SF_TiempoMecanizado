@@ -18,15 +18,21 @@ from databases import Databases
 def main():
     print('Inicializando programa...\n')
     db = Databases()
-    df_base = pd.read_sql(parameters.queries['query_calendario'], db.conns['conn_calenda']).astype({'Orden': 'int64', 'ZFER': int})
-    unique_order = list(df_base['Orden'].unique())
+    
+    with db.engines['conn_calenda'].connect() as connection:
+        df_base = pd.read_sql(parameters.queries['query_calendario'], connection).astype({'Orden': 'int64', 'ZFER': int})
+        
+    unique_order = df_base['Orden'].unique().tolist()
     cal_unique_order = str(unique_order)[1:-1]
-    unique_zfer = list(df_base['ZFER'].unique())
+    unique_zfer = df_base['ZFER'].unique().tolist()
     cal_unique_zfer = str(unique_zfer)[1:-1] # This ZFER list filter all of the queries from now on    
     # Create a query for the ZFER_HEAD dataframe - START
     parameters.create_query(query="SELECT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD",
-                            where=f"WHERE MATERIAL in ({cal_unique_zfer})", dict_name='zfer_head')    
-    df_zfer_head = pd.read_sql(parameters.queries['zfer_head'], db.conns['conn_colsap']).drop_duplicates('ZFER', keep='first')
+                            where=f"WHERE MATERIAL in ({cal_unique_zfer})", dict_name='zfer_head')  
+    
+    with db.engines['conn_colsap'].connect() as connection:  
+        df_zfer_head = pd.read_sql(parameters.queries['zfer_head'], connection).drop_duplicates('ZFER', keep='first')
+        
     # Create a query for the ZFER_HEAD dataframe - END
     print('Leyendo datos desde hojas de ruta de mecanizado...\n')
     # Create a query for the HR table - START
@@ -34,27 +40,38 @@ def main():
                             SELECT hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL as ZFER FROM ODATA_HR_CONSULTA hr
                                 inner join a on hr.ID_HRUTA = a.ID_HRUTA and hr.SUB_RUTA = a.SUB_RUTA
                             WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
-                            GROUP BY hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL""", dict_name='hojasruta')    
-    df_hojasruta = pd.read_sql(parameters.queries['hojasruta'], db.conns['conn_colsap'])
+                            GROUP BY hr.ID_HRUTA, TXT_MECANIZADO, a.MATERIAL""", dict_name='hojasruta')
+    
+    with db.engines['conn_colsap'].connect() as connection:  
+        df_hojasruta = pd.read_sql(parameters.queries['hojasruta'], connection)
+        
     df_hojasruta['Operacion1'] = 'MECANIZADO'
     df_hojasruta['ClaveModelo'] = df_hojasruta['TXT_MECANIZADO'].str.split(',')
     df_hojasruta = df_hojasruta.explode('ClaveModelo')
+    
     # Create a query for the HR table - END
     print('Leyendo datos desde hojas de ruta de serigrafía...\n')
+    
     # Create a query for the HR table to return the windows with black band - START
     parameters.create_query(query=f"""WITH a as (SELECT * FROM HR_MATERIALS WHERE ORDEN in ({cal_unique_order}))
                             SELECT hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL as ZFER FROM ODATA_HR_CONSULTA hr
                                 inner join a on hr.ID_HRUTA = a.ID_HRUTA and hr.SUB_RUTA = a.SUB_RUTA
                             WHERE TXT_MECANIZADO is not null and TXT_MECANIZADO <> ''
                             GROUP BY hr.ID_HRUTA, TXT_VITRIFICADO, a.MATERIAL""", dict_name='hojasruta_serigrafia')
-    df_pinturas = pd.read_sql(parameters.queries['hojasruta_serigrafia'], db.conns['conn_colsap'])
+    
+    with db.engines['conn_colsap'].connect() as connection:
+        df_pinturas = pd.read_sql(parameters.queries['hojasruta_serigrafia'], connection)
+    
     df_pinturas['Operacion2'] = 'VITRIFICADO'
     df_pinturas['ClaveModelo'] = df_pinturas['TXT_VITRIFICADO'].str.split(',')
     df_pinturas = df_pinturas.explode('ClaveModelo')
     # Create a query for the HR table to return the windows with black band - END
     parameters.create_query(query='SELECT * FROM SF_TiemposMecanizado_ZFER', dict_name='tiempos_cnc', 
                             where=f'WHERE ZFER in ({cal_unique_zfer})')
-    df_tiemposcnc = pd.read_sql(parameters.queries['tiempos_cnc'], db.conns['conn_smartfa'])
+    
+    with db.engines['conn_smartfa'].connect() as connection:
+        df_tiemposcnc = pd.read_sql(parameters.queries['tiempos_cnc'], connection)
+    
     df_tiemposcnc = df_tiemposcnc.drop(['ZFOR', 'ID'], axis=1)
     print('Unificando tablas...\n')
     # Merging the base dataframe into one

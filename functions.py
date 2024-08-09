@@ -8,7 +8,8 @@ import parameters
 import pandas as pd
 class Functions:
     def __init__(self, sf_conn):
-        self.df_avances = pd.read_sql(parameters.queries['query_avances'], sf_conn)
+        with sf_conn.connect() as connection:
+            self.df_avances = pd.read_sql(parameters.queries['query_avances'], connection)
 
     def agregar_pasadas(self, df):
         '''

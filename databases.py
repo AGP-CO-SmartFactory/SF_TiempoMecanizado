@@ -3,7 +3,7 @@ import parameters
 import pandas as pd
 class Databases:
     def __init__(self):
-        self.conns = {'conn_calenda': Connection(parameters.conexiones['SERCAL'], parameters.conexiones['DATCAL'], 
+        self.engines = {'conn_calenda': Connection(parameters.conexiones['SERCAL'], parameters.conexiones['DATCAL'], 
                                                 parameters.conexiones['UIDCAL'], parameters.conexiones['PWDCAL']).conn,
                       'conn_colsap': Connection(parameters.conexiones['SERING'], parameters.conexiones['DATING'], 
                                                 parameters.conexiones['UIDING'], parameters.conexiones['PWDING']).conn,
@@ -16,5 +16,6 @@ class Databases:
                       'conn_genesis': Connection(parameters.conexiones['SERGN'], parameters.conexiones['DATGN'], 
                                                 parameters.conexiones['UIDGN'], parameters.conexiones['PWDGN']).conn,}
     def crear_dataframe(self, query, key):
-        df = pd.read_sql(query, self.conns[key])
+        with self.engines[key].connect() as connection:
+            df = pd.read_sql(query, connection)
         return df

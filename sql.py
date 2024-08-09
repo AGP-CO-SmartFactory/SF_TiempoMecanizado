@@ -16,7 +16,6 @@ class Loader:
         connection_url = URL.create("mssql+pyodbc", username=UID, password=PWD,
             host=SERVER, database=DB, query={"driver": DRIVER, "TrustServerCertificate": "yes",})
         self.engine = sqlalchemy.create_engine(connection_url)
-        self.connection = self.engine.connect()
         self.meta = sqlalchemy.MetaData()
 
     def borrar_datos_antiguos(self):
@@ -31,8 +30,9 @@ class Loader:
         print('Borrando datos antiguos')
         tabla_maquina = sqlalchemy.Table(self.basetable, self.meta, autoload_with=self.engine)
         stmt = sqlalchemy.delete(tabla_maquina)
-        self.connection.execute(stmt)
-        self.connection.commit() 
+        with self.engine.connect() as connection:
+            connection.execute(stmt)
+            connection.commit() 
     
     def update_row(self, row):
         tabla_maquina = sqlalchemy.Table(self.basetable, self.meta, autoload_with=self.engine)
@@ -42,7 +42,8 @@ class Loader:
                                 TiempoMecanizado = row['TiempoMecanizado'], C_Bisel = row['C_Bisel'],
                                 C_BrilloC = row['C_BrilloC'], C_BrilloP = row['C_BrilloP'], C_CantoC = row['C_CantoC'],
                                 C_Caja = row['C_Caja'], C_Chaflan = row['C_Chaflan']))
-        self.connection.execute(table_update)
+        with self.engine.connect() as connection:
+            connection.execute(table_update)
                
     def cargar_datos(self, df, basetable=None):
         '''
@@ -57,26 +58,27 @@ class Loader:
         if not basetable:
             basetable = self.basetable
         print(f'Cargando datos a: {basetable}')
-        df.to_sql(name=basetable, con=self.connection, if_exists='append', index_label='ID')
-        self.connection.commit()        
+        with self.engine.connect() as connection:
+            df.to_sql(name=basetable, con=connection, if_exists='append', index_label='ID')
     
     def update_tablebyrow(self, df_final):
         print('Actualizando tabla con los nuevos registros...')
-        unique_zfer = str(list(df_final['ZFER'].unique()))[1:-1]
-        df_sql = pd.read_sql(f"""SELECT ID, ZFER, ClaveModelo FROM SF_TiemposMecanizado_ZFER 
-                             WHERE ZFER in ({unique_zfer})""", self.connection)
-        df_update = pd.merge(df_final, df_sql, on=['ZFER', 'ClaveModelo'], how='left')
-        df_newzfers = df_update[(pd.isna(df_update['ID'])) & (df_update['Material'] != 'nan')]
-        max_id = pd.read_sql('SELECT MAX(ID) FROM SF_TiemposMecanizado_ZFER', self.connection)
-        max_id = int(max_id.values[0])
-        print(f"Hay {max_id} ZFER activos en la tabla")
-        df_newzfers = df_newzfers.assign(ID = lambda x: range(max_id+1, max_id + len(df_newzfers) + 1))
-        df_newzfers = df_newzfers.set_index('ID')
-        print(f"Se tienen {len(df_newzfers)} nuevos ZFER para agregar")
-        self.cargar_datos(df_newzfers) # Cargar los nuevos ZFER a la base de datos
-        df_update = df_update.dropna(subset='ID')
-        df_update = df_update.fillna(0)
-        for enum, row in df_update.iterrows():
-            self.update_row(row)
-        self.connection.commit()
+        unique_zfer = str(df_final['ZFER'].unique().tolist())[1:-1]
+        
+        with self.engine.connect() as connection:
+            df_sql = pd.read_sql(f"""SELECT ID, ZFER, ClaveModelo FROM SF_TiemposMecanizado_ZFER 
+                                WHERE ZFER in ({unique_zfer})""", connection)
+            df_update = pd.merge(df_final, df_sql, on=['ZFER', 'ClaveModelo'], how='left')
+            df_newzfers = df_update[(pd.isna(df_update['ID'])) & (df_update['Material'] != 'nan')]
+            max_id = pd.read_sql('SELECT MAX(ID) FROM SF_TiemposMecanizado_ZFER', connection)
+            max_id = int(max_id.values[0])
+            print(f"Hay {max_id} registros activos en la tabla")
+            df_newzfers = df_newzfers.assign(ID = lambda x: range(max_id+1, max_id + len(df_newzfers) + 1))
+            df_newzfers = df_newzfers.set_index('ID')
+            print(f"Se agregarán {len(df_newzfers)} nuevos registros")
+            self.cargar_datos(df_newzfers) # Cargar los nuevos ZFER a la base de datos
+            df_update = df_update.dropna(subset='ID')
+            df_update = df_update.fillna(0)
+            for enum, row in df_update.iterrows():
+                self.update_row(row)
         

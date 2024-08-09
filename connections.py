@@ -24,5 +24,4 @@ class Connection:
                 "driver": self.driver,
                 "TrustServerCertificate": "yes",})
         engine = sqlalchemy.create_engine(connection_url)
-        conn = engine.connect()
-        return conn
+        return engine
