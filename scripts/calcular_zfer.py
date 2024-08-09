@@ -19,8 +19,8 @@ from functions import Functions
 def main():
     print('Inicializando programa...\n')
     db = Databases()
-    functions = Functions(db.conns['conn_smartfa'])
-    df_base = pd.read_sql(parameters.queries['query_acabados'], db.conns['conn_genesis'])
+    functions = Functions(db.engines['conn_smartfa'])
+    df_base = db.crear_dataframe(parameters.queries['query_acabados'], 'conn_genesis')
     df_base = df_base.drop_duplicates(subset=['ZFER'], keep='first')
     # Create a query for the ZFER_HEAD dataframe - START
     print('Descargando información desde ingeniería (ZFER-HEAD)...\n')   
@@ -31,10 +31,10 @@ def main():
     parameters.create_query(query="""SELECT MATERIAL as ZFER, POSICION, CLASE, CAST(DIMEN_BRUTA_1 as float) as ANCHO, 
                             CAST(DIMEN_BRUTA_2 as float) as LARGO, CAST(CANT_PIEZAS_BRUTA as float) as Area FROM ODATA_ZFER_BOM""",
                             where="""WHERE CLASE like 'Z_VD%' AND CENTRO = 'CO01'""", dict_name='zfer_bom')    
-    df_zfer_bom = pd.read_sql(parameters.queries['zfer_bom'], db.conns['conn_colsap'])
+    df_zfer_bom = db.crear_dataframe(parameters.queries['zfer_bom'], 'conn_colsap')
     df_zfer_bom['CLASE'] = df_zfer_bom.apply(lambda x: x['CLASE'][0:-1] if x['CLASE'][-1] == "_" else x['CLASE'], axis=1) #Eliminar lineas al final del texto
     # Create a query for the ZFER_bom dataframe - END
-    df_caracteristicas = pd.read_sql(parameters.queries['query_caracteristicas'], db.conns['conn_colsap'])
+    df_caracteristicas = db.crear_dataframe(parameters.queries['query_caracteristicas'], 'conn_colsap')
     print('Unificando tablas...\n')
     # Merging the base dataframe into one
     df = pd.merge(df_base.astype({'ZFER': int}), df_zfer_head, on='ZFER', how='outer')
