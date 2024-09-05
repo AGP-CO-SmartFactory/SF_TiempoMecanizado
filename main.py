@@ -21,23 +21,24 @@ def main(*args):
     if args[0] == '1':
         loader = Loader('SF_TiemposMecanizado')
         tabla = at.main()
-        loader.borrar_datos_antiguos()
-        loader.cargar_datos(tabla)
+        tabla.to_csv('tiempos_BajaVel-PasosNormal.csv')
+        # loader.borrar_datos_antiguos()
+        # loader.cargar_datos(tabla)
         return tabla
 
     elif args[0] == '2':
-        loader = Loader('SF_TiemposMecanizado_ZFER')
+        loader = Loader('SF_TiemposMecanizado_ZFER_QAs')
         loader.borrar_datos_antiguos()
         tabla = cz.main()
         loader.cargar_datos(tabla)
         return tabla
     
     elif args[0] == '3':
-        loader = Loader('SF_TiemposMecanizado_ZFER')
+        loader = Loader('SF_TiemposMecanizado_ZFER_QAs')
         tabla = az.main()
         loader.update_tablebyrow(tabla)
         return tabla
 
 if __name__ == '__main__':
-    # tabla = main('3')
+    # tabla = main('2')
     tabla = main(sys.argv[1])

@@ -66,7 +66,7 @@ def main():
     df_pinturas['ClaveModelo'] = df_pinturas['TXT_VITRIFICADO'].str.split(',')
     df_pinturas = df_pinturas.explode('ClaveModelo')
     # Create a query for the HR table to return the windows with black band - END
-    parameters.create_query(query='SELECT * FROM SF_TiemposMecanizado_ZFER', dict_name='tiempos_cnc', 
+    parameters.create_query(query='SELECT * FROM SF_TiemposMecanizado_ZFER_QAs', dict_name='tiempos_cnc', 
                             where=f'WHERE ZFER in ({cal_unique_zfer})')
     
     with db.engines['conn_smartfa'].connect() as connection:

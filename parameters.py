@@ -43,7 +43,9 @@ queries = {'query_calendario': """SELECT CodTipoPieza, Orden, ZFER
            'query_cal_acabados': """SELECT CAST(ZFER as int) as ZFER, BordePintura, BordePaquete, AbrvPieza as PartShort
                                   FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' 
                                   AND ZFER like '7%' ORDER BY Orden DESC""",
-           'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC",
+                                  
+           'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC_QAs",
+           
            #01 son cajas, 02 son chaflanes y 03 son perforaciones
            'query_caracteristicas': """SELECT MATERIAL as ZFER, ATWRT as ENG_GeometricDiffs FROM ODATA_ZFER_CLASS_001 
                                WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS'  AND CENTRO = 'CO01'""",

@@ -88,52 +88,53 @@ class Functions:
             print(f"{x['ZFER']} - {x['CLASE']}")
             return x
         tiempo = 0
+        
         if x['Desbaste']:
-            tiempo += round((x['Perimetro']/avance['DesbastePlano']).values[0], 2)
+            tiempo += round((x['Perimetro']/avance['DesbastePlano']).values[0], 2) * x['Desbaste']
         if x['AcabadoC']:
-            tiempo += round(x['Perimetro']/avance['AcabadoC'].values[0], 2)
+            tiempo += round(x['Perimetro']/avance['AcabadoC'].values[0], 2) * x['AcabadoC']
         if x['BrilloC']:
-            tiempo += round(x['Perimetro']/avance['BrilloC'].values[0], 2)
+            tiempo += round(x['Perimetro']/avance['BrilloC'].values[0], 2) * x['BrilloC']
         if x['AcabadoPlano']:
-            tiempo += round(x['Perimetro']/avance['AcabadoPlano'].values[0], 2)
+            tiempo += round(x['Perimetro']/avance['AcabadoPlano'].values[0], 2) * x['AcabadoPlano']
         if x['BrilloP']:
-            tiempo += round(x['Perimetro']/avance['BrilloPlano'].values[0], 2)
+            tiempo += round(x['Perimetro']/avance['BrilloPlano'].values[0], 2) * x['BrilloP']
         
         # Definición de biseles
         if x['PartShort'] in ['PBS', 'POS']:
             if x['BiselP1']:
-                tiempo += round(x['LARGO']/avance['BiselP1'].values[0], 2)
+                tiempo += round(x['LARGO']/avance['BiselP1'].values[0], 2) * x['BiselP1']
             if x['BiselP2']:
-                tiempo += round(x['LARGO']/avance['BiselP2'].values[0], 2)
+                tiempo += round(x['LARGO']/avance['BiselP2'].values[0], 2) * x['BiselP2']
             if x['BiselBrillo']:
-                tiempo += round(x['LARGO']/avance['BiselBrillo'].values[0], 2)
+                tiempo += round(x['LARGO']/avance['BiselBrillo'].values[0], 2) * x['BiselBrillo']
         else:
             if x['BiselP1']:
-                tiempo += round(2*x['Perimetro']/(3*avance['BiselP1']).values[0], 2)
+                tiempo += round(2*x['Perimetro']/(3*avance['BiselP1']).values[0], 2) * x['BiselP1']
             if x['BiselP2']:
-                tiempo += round(2*x['Perimetro']/(3*avance['BiselP2']).values[0], 2)
+                tiempo += round(2*x['Perimetro']/(3*avance['BiselP2']).values[0], 2) * x['BiselP2']
             if x['BiselBrillo']:
-                tiempo += round(2*x['Perimetro']/(3*avance['BiselBrillo']).values[0], 2)
+                tiempo += round(2*x['Perimetro']/(3*avance['BiselBrillo']).values[0], 2) * x['BiselBrillo']
         
         # Definición de chaflanes y cajas
         if len(x['PartShort']):
             if x['PartShort'] == 'PBS':
                 if x['Chaflan1']:
-                    tiempo += round((x['LARGO']/avance['Chaflan1']).values[0], 2)
+                    tiempo += round((x['LARGO']/avance['Chaflan1']).values[0], 2) * x['Chaflan1']
                 if x['Chaflan2']:
-                    tiempo += round(x['LARGO']/avance['Chaflan2'].values[0], 2)
+                    tiempo += round(x['LARGO']/avance['Chaflan2'].values[0], 2) * x['Chaflan2']
                 if x['C_Caja']:
                     tiempo += 5       
             elif x['PartShort'][0] == 'L':
                 if x['Chaflan1']:
-                    tiempo += round(x['Perimetro']/(3*avance['Chaflan1']).values[0], 2)
+                    tiempo += round(x['Perimetro']/(3*avance['Chaflan1']).values[0], 2) * x['Chaflan1']
                 if x['Chaflan2']:
-                    tiempo += round(x['Perimetro']/(3*avance['Chaflan2']).values[0], 2)
+                    tiempo += round(x['Perimetro']/(3*avance['Chaflan2']).values[0], 2) * x['Chaflan2']
                 if x['C_Caja']:
                     tiempo += 3
             elif x['PartShort'] == 'POS':
                 if x['C_Caja']:
                     tiempo += 4
             
-        x['Tiempo'] = tiempo + 3 # Corrección para el montaje de las herramientas y la pieza
+        x['Tiempo'] = tiempo # Corrección para el montaje de las herramientas y la pieza
         return x
