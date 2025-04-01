@@ -33,7 +33,6 @@ class TestFunctions(unittest.TestCase):
             y['Area'] = y['ANCHO'] * y['LARGO'] / 1000000
             dataset.append(y)
         self.x = pd.DataFrame(dataset)
-        print(self.x.head(20))
     
     def tearDown(self) -> None:
         print('Finalizando prueba')
@@ -42,7 +41,6 @@ class TestFunctions(unittest.TestCase):
     def test_definir_cantos(self):
         modified_x = functions.definir_cantos(self.x)
         for index, row in modified_x.iterrows():
-            print(f'Vidrio actual {index} - {row["ZFER"]}')
             if row['ClaveModelo'] == '01VEXT':
                 if 'Bisel' in row['BordePintura']:
                     self.assertTrue(row['Bisel'], 'El vidrio es un externo y dice que lleva Bisel, por tanto debe ser verdadero')

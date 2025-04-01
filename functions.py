@@ -85,7 +85,6 @@ class Functions:
         '''
         avance = self.df_avances[self.df_avances['Referencia'] == x['CLASE']].copy()
         if not len(avance):
-            print(f"{x['ZFER']} - {x['CLASE']}")
             return x
         tiempo = 0
         if x['Desbaste']:

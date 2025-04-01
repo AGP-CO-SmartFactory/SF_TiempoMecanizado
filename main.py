@@ -21,6 +21,7 @@ def main(*args):
     if args[0] == '1':
         loader = Loader('SF_TiemposMecanizado')
         tabla = at.main()
+        # tabla.to_csv('tiempos_BajaVel-PasosNormal.csv')
         loader.borrar_datos_antiguos()
         loader.cargar_datos(tabla)
         return tabla

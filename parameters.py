@@ -43,16 +43,19 @@ queries = {'query_calendario': """SELECT CodTipoPieza, Orden, ZFER
            'query_cal_acabados': """SELECT CAST(ZFER as int) as ZFER, BordePintura, BordePaquete, AbrvPieza as PartShort
                                   FROM TCAL_CALENDARIO_COLOMBIA_DIRECT WHERE LlegoAlmacen = 'False' 
                                   AND ZFER like '7%' ORDER BY Orden DESC""",
+                                  
            'query_avances': "SELECT * FROM SF_Tabla_AvancesCNC",
+           
            #01 son cajas, 02 son chaflanes y 03 son perforaciones
            'query_caracteristicas': """SELECT MATERIAL as ZFER, ATWRT as ENG_GeometricDiffs FROM ODATA_ZFER_CLASS_001 
                                WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS'  AND CENTRO = 'CO01'""",
            'query_acabados': """WITH BPNID as (SELECT EdgePaintID, EdgePaintName_ES as BordePintura FROM Seed_Web_GenesisSap_SGlass.MatEdgePaints),
                              	 BPAID as (SELECT BlockEdgeID, BlockEdgeName_ES as BordePaquete FROM Seed_Web_GenesisSap_SGlass.MatBlockEdges)
-                                 SELECT DISTINCT SpecID as ZFER, PartShort, BordePintura, BordePaquete
+                                 SELECT DISTINCT SpecID as ZFER, PartShort_ES as PartShort, BordePintura, BordePaquete
                                  FROM Seed_Web_GenesisSap_SGlass.SalesOrderDetails SOD with (nolock)
                                  	inner join BPNID on SOD.EdgePaintID = BPNID.EdgePaintID
                                  	inner join BPAID on SOD.EdgePacketID = BPAID.BlockEdgeID
+									inner join Seed_Web_GenesisSap_SGlass.Parts on SOD.PartID = Parts.PartID
                                  WHERE SpecID like '7%'""",
             'zfer_head': """SELECT MATERIAL as ZFER, ZFOR FROM ODATA_ZFER_HEAD with (nolock) WHERE STATUS is null"""}
 
