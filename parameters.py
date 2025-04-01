@@ -51,7 +51,7 @@ queries = {'query_calendario': """SELECT CodTipoPieza, Orden, ZFER
                                WHERE ATNAM = 'Z_GEOMETRIC_DIFFERENTIALS'  AND CENTRO = 'CO01'""",
            'query_acabados': """WITH BPNID as (SELECT EdgePaintID, EdgePaintName_ES as BordePintura FROM Seed_Web_GenesisSap_SGlass.MatEdgePaints),
                              	 BPAID as (SELECT BlockEdgeID, BlockEdgeName_ES as BordePaquete FROM Seed_Web_GenesisSap_SGlass.MatBlockEdges)
-                                 SELECT DISTINCT SpecID as ZFER, PartShort, BordePintura, BordePaquete
+                                 SELECT DISTINCT SpecID as ZFER, PartShort_ES, BordePintura, BordePaquete
                                  FROM Seed_Web_GenesisSap_SGlass.SalesOrderDetails SOD with (nolock)
                                  	inner join BPNID on SOD.EdgePaintID = BPNID.EdgePaintID
                                  	inner join BPAID on SOD.EdgePacketID = BPAID.BlockEdgeID
