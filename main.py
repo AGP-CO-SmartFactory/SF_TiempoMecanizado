@@ -22,15 +22,13 @@ def main(*args):
         loader = Loader('SF_TiemposMecanizado')
         tabla = at.main()
         # tabla.to_csv('tiempos_BajaVel-PasosNormal.csv')
-        loader.borrar_datos_antiguos()
-        loader.cargar_datos(tabla)
+        loader.reemplazar_datos(tabla)
         return tabla
 
     elif args[0] == '2':
         loader = Loader('SF_TiemposMecanizado_ZFER')
-        loader.borrar_datos_antiguos()
         tabla = cz.main()
-        loader.cargar_datos(tabla)
+        loader.reemplazar_datos(tabla)
         return tabla
     
     elif args[0] == '3':
