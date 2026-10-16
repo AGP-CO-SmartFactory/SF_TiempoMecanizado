@@ -7,3 +7,7 @@
 *.pyc
 *.bat
 TiemposMecanizado.xml
+!actualizar.bat
+!actualizarZFER.bat
+__pycache__/
+.ipynb_checkpoints/
