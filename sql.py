@@ -2,17 +2,18 @@
 import sqlalchemy 
 from sqlalchemy.engine import URL
 from dotenv import dotenv_values
+from connections import pick_driver
 
 # Variables de entorno del código
 class Loader:
     def __init__(self, tabla):
         self.basetable = tabla
-        params_dict = dotenv_values('C:\envs\zferbp_envar.env')
+        params_dict = dotenv_values(r'C:\envs\zferbp_envar.env')
         SERVER = params_dict['SERSF']
         UID = params_dict['UIDSF']
         PWD = params_dict['PWDSF']
         DB = params_dict['DATSF']
-        DRIVER = 'ODBC Driver 18 for SQL Server'
+        DRIVER = pick_driver()
         connection_url = URL.create("mssql+pyodbc", username=UID, password=PWD,
             host=SERVER, database=DB, query={"driver": DRIVER, "TrustServerCertificate": "yes",})
         self.engine = sqlalchemy.create_engine(connection_url)
@@ -34,6 +35,21 @@ class Loader:
             connection.execute(stmt)
             connection.commit() 
     
+    def reemplazar_datos(self, df, basetable=None):
+        '''
+        Reemplaza todo el contenido de la tabla en una sola transaccion: si la carga
+        falla, el borrado se revierte y la tabla conserva sus datos anteriores.
+        No toca la tabla si el dataframe llega vacio.
+        '''
+        if df is None or df.empty:
+            raise ValueError('No hay datos para cargar; no se borra la tabla.')
+        basetable = basetable or self.basetable
+        print(f'Reemplazando datos en: {basetable}')
+        tabla = sqlalchemy.Table(basetable, sqlalchemy.MetaData(), autoload_with=self.engine)
+        with self.engine.begin() as connection:
+            connection.execute(sqlalchemy.delete(tabla))
+            df.to_sql(name=basetable, con=connection, if_exists='append', index_label='ID')
+
     def update_row(self, row):
         tabla_maquina = sqlalchemy.Table(self.basetable, self.meta, autoload_with=self.engine)
         table_update = (sqlalchemy.update(tabla_maquina)
